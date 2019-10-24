@@ -1,5 +1,5 @@
 import pandas as pd
-from src.utils import project_root
+from src.utils import project_root, prob_distribution_from_dict
 import os
 from typing import Dict
 import pdb
@@ -32,28 +32,22 @@ def list_user_page_nodes(df: pd.DataFrame):
 def get_neighbors_neighbors(df_start, df_neighbors):
     dct = {}
     for previous, possible_starts in df_start.items():
-        print('previous =', previous)
         dct[previous] = {}
         for start in possible_starts:
-            print('start =', start)
             # Probability to get back to itself
             dct[previous][start] = {previous: 1 / PARAMETERS["p"]}
-            print('possible neighbors =', df_neighbors[start])
             for neighbor in df_neighbors[start]:
                 # Second neighbors
                 if neighbor != previous:
                     if neighbor in possible_starts:
                         # Previous node and start share the same neighbor !
+                        # TODO: I think this will never be the case with Relations.csv?
                         dct[previous][start][neighbor] = 1
                     else:
                         # there is a distance of 2 between previous and neighbor
                         dct[previous][start][neighbor] = 1 / PARAMETERS["q"]
             # Transform to probability distribution
-            pprint(dct[previous][start])
-            total = sum(dct[previous][start].values())
-            dct[previous][start] = {k: v / total for k, v in dct[previous][start].items()}
-            print('-' * 10)
-        print('-' * 30)
+            dct[previous][start] = prob_distribution_from_dict(dct[previous][start])
 
     return dct
 
