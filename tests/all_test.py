@@ -39,8 +39,13 @@ class UtilsTest(unittest.TestCase):
             "page1": 0,
             "page2": 0
         }
+
+        length = 1
+        walk = random_walk(self.matrix_probs, "page4", length)
+        self.assertEqual(len(walk), length + 1)
+
         for i in range(10000):
-            walk = random_walk(self.matrix_probs, "page4", length=1)
+            walk = random_walk(self.matrix_probs, "page4", length)
             mc_estimate[walk[-1]] += 1
 
         mc_estimate = prob_distribution_from_dict(mc_estimate)
@@ -51,4 +56,7 @@ class UtilsTest(unittest.TestCase):
         }
         real_prob_distribution = prob_distribution_from_dict(real_prob_distribution)
         for key in mc_estimate.keys():
-            self.assertAlmostEqual(mc_estimate[key], real_prob_distribution[key], places=2)
+            self.assertAlmostEqual(mc_estimate[key], real_prob_distribution[key], places=1)
+
+    def test_node_list(self):
+        self.assertEqual(len(list_all_nodes(self.df)), 10)

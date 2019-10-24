@@ -1,7 +1,7 @@
 import pandas as pd
 from src.utils import project_root, prob_distribution_from_dict
 import os
-from typing import Dict
+from typing import Dict, List
 import pdb
 import json
 from pprint import pprint
@@ -22,11 +22,10 @@ def load_csv(path_csv: str) -> pd.DataFrame:
     return df
 
 
-def list_user_page_nodes(df: pd.DataFrame):
+def list_all_nodes(df: pd.DataFrame) -> List[str]:
     users = df[USER_ID].unique()
     pages = df[LIKE_ID].unique()
-    print(users)
-    print(pages)
+    return list(users) + list(pages)
 
 
 def get_neighbors_neighbors(df_start, df_neighbors):
@@ -73,8 +72,8 @@ def get_transition_probabilites(df: pd.DataFrame, save_dict: bool) -> Dict[str, 
 
 def main():
     df = load_csv(TEST_CSV)
-    list_user_page_nodes(df)
-    get_transition_probabilites(df, True)
+    all_nodes = list_all_nodes(df)
+    # get_transition_probabilites(df, True)
     #pdb.set_trace()
 
 
