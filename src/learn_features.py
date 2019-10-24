@@ -3,7 +3,8 @@ from typing import Dict, List
 from pprint import pprint
 import pdb
 import json
-from src.utils import EpochSaver
+import argparse
+from src.utils import EpochSaver, RELATIONS
 import multiprocessing
 import random
 import gensim
@@ -12,8 +13,7 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
 
-PATH_EMBEDDINGS = "features_node2vec.csv"
-FEATURES = "features"
+FILE_EMBEDDINGS = "features_node2vec.csv"
 
 
 def random_walk(matrix_prob: Dict, previous_node: str, length: int):
@@ -41,23 +41,24 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
     return walk[1:]
 
 
-def learn_features(matrix_prob: Dict, list_nodes: List[str], user_nodes: List[str], dim_features: int = 128,
-                   walks_per_node: int = 10, walk_length: int = 80, context_size: int = 10):
+def learn_features(matrix_prob: Dict, all_nodes: List[str], user_nodes: List[str], path_save: str,
+                   dim_features: int = 128, walks_per_node: int = 10, walk_length: int = 80, context_size: int = 10):
     if context_size >= walk_length:
         raise ValueError("Context size can't be greater or equal to walk length !")
 
     walks = []
     for i in range(walks_per_node):
-        for node in list_nodes:
+        for node in all_nodes:
             walks.append(random_walk(matrix_prob, node, walk_length))
 
     # pprint(walks)
-    optimize(walks, user_nodes, context_size, dim_features, mode='train')
+    optimize(walks, user_nodes, context_size, dim_features, mode='train', path_save=path_save)
 
 
 def optimize(walks: List[List[str]], user_nodes: List[str], context_size: int, dim_features: int,
-             mode: str, path_model: str = None):
+             mode: str, path_save: str, path_model: str = None):
     """
+    :param path_save: where to save the embeddings
     :param user_nodes: List of all user ids
     :param walks: Input of "sentences"
     :param context_size: Also called window size
@@ -92,11 +93,11 @@ def optimize(walks: List[List[str]], user_nodes: List[str], context_size: int, d
     else:
         raise ValueError('Specify valid value for mode (%s)' % mode)
 
-    write_embeddings_to_file(model, user_nodes, PATH_EMBEDDINGS)
+    write_embeddings_to_file(model, user_nodes, path_save)
 
 
-def write_embeddings_to_file(model: gensim.models.Word2Vec, user_nodes: List[str], emb_file: str):
-    logging.info('Writting embeddings to file %s' % emb_file)
+def write_embeddings_to_file(model: gensim.models.Word2Vec, user_nodes: List[str], path_save: str):
+    logging.info('Writting embeddings to file %s' % path_save)
     embeddings = {}
     for v in list(model.wv.vocab):
         # we only keep users' embeddings
@@ -105,16 +106,36 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, user_nodes: List[str
             embeddings[v] = vec
 
     df = pd.DataFrame(embeddings).T
-    df.to_csv(emb_file)
+    df.to_csv(path_save)
 
 
 def main():
 
-    df = load_csv(TEST_CSV)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--data",
+        type=str,
+        help="Path to the folder containing the data",
+        default=os.path.join(project_root(), "tests", "data"),
+    )
+    parser.add_argument(
+        "--save",
+        help="Path of the folder to save the user features (default is same folder as data)",
+        default=None,
+    )
+
+    args = parser.parse_args()
+    if args.save is None:
+        args.save = args.data
+    # Get to Relation.csv
+    args.data = os.path.join(args.data, RELATIONS)
+    args.save = os.path.join(args.save, FILE_EMBEDDINGS)
+
+    df = load_csv(args.data)
     matrix_prob = get_transition_probabilites(df, False)
     list_nodes = list_all_nodes(df)
     user_nodes = list_user_nodes(df)
-    learn_features(matrix_prob, list_nodes, user_nodes, walks_per_node=3, walk_length=5, context_size=2)
+    learn_features(matrix_prob, list_nodes, user_nodes, args.save, walks_per_node=3, walk_length=5, context_size=2)
 
 
 if __name__ == "__main__":

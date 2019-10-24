@@ -1,12 +1,12 @@
 import pandas as pd
-from src.utils import project_root, prob_distribution_from_dict
+from src.utils import project_root, prob_distribution_from_dict, RELATIONS
 import os
 from typing import Dict, List
 import pdb
 import json
 from pprint import pprint
 
-TEST_CSV = os.path.join(project_root(), "tests", "data", "Relation", "Relation.csv")
+TEST_CSV = os.path.join(project_root(), "tests", "data", RELATIONS)
 PATH_PROBS = os.path.join(project_root(), "tests", "prob_relations.json")
 LIKE_ID = "like_id"
 USER_ID = "userid"

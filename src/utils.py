@@ -2,6 +2,9 @@ from pathlib import Path
 from typing import Dict
 from gensim.test.utils import get_tmpfile
 from gensim.models.callbacks import CallbackAny2Vec
+import os
+
+RELATIONS = os.path.join("Relation", "Relation.csv")
 
 
 def project_root() -> Path:
