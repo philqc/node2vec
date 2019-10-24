@@ -41,23 +41,19 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
     return walk[1:]
 
 
-def learn_features(matrix_prob: Dict, all_nodes: List[str], user_nodes: List[str], path_save: str,
-                   dim_features: int = 128, walks_per_node: int = 10, walk_length: int = 80, context_size: int = 10):
-    if context_size >= walk_length:
-        raise ValueError("Context size can't be greater or equal to walk length !")
-
+def sample_walks(matrix_prob: Dict, all_nodes: List[str], walks_per_node: int = 10, walk_length: int = 80):
     walks = []
     for i in range(walks_per_node):
         for node in all_nodes:
             walks.append(random_walk(matrix_prob, node, walk_length))
 
-    # pprint(walks)
-    optimize(walks, user_nodes, context_size, dim_features, mode='train', path_save=path_save)
+    return walks
 
 
-def optimize(walks: List[List[str]], user_nodes: List[str], context_size: int, dim_features: int,
-             mode: str, path_save: str, path_model: str = None):
+def optimize(walks: List[List[str]], user_nodes: List[str], mode: str, path_save: str,
+             epochs: int = 10, context_size: int = 10, dim_features: int = 128, path_model: str = None):
     """
+    :param epochs: number of epochs to run model
     :param path_save: where to save the embeddings
     :param user_nodes: List of all user ids
     :param walks: Input of "sentences"
@@ -74,21 +70,19 @@ def optimize(walks: List[List[str]], user_nodes: List[str], context_size: int, d
     epoch_logger = EpochSaver('word2vec')
 
     n_negative_samples = 10
-    # number of iterations (or epochs)
-    iters = 2
     # minimum term frequency (to define the vocabulary)
     min_count = 2
 
     if mode == 'train':
         logging.info('Starting Training of Word2Vec Model')
         model = gensim.models.Word2Vec(walks, min_count=min_count, sg=1, size=dim_features,
-                                       iter=iters, workers=cores, negative=n_negative_samples,
+                                       iter=epochs, workers=cores, negative=n_negative_samples,
                                        window=context_size, callbacks=[epoch_logger])
     elif mode == 'resume':
         logging.info('Resuming Training of Word2Vec Model')
         model = gensim.models.Word2Vec.load(path_model)
         # Start at the learning rate that we previously stopped
-        model.train(walks, total_examples=model.corpus_count, epochs=iters,
+        model.train(walks, total_examples=model.corpus_count, epochs=epochs,
                     start_alpha=model.min_alpha_yet_reached, callbacks=[epoch_logger])
     else:
         raise ValueError('Specify valid value for mode (%s)' % mode)
@@ -123,6 +117,36 @@ def main():
         help="Path of the folder to save the user features (default is same folder as data)",
         default=None,
     )
+    parser.add_argument(
+        "--walks_per_node",
+        help="Number of random samples starting from each node",
+        default=10,
+    )
+    parser.add_argument(
+        "--walk_length",
+        help="Length of the random walk",
+        default=80,
+    )
+    parser.add_argument(
+        "--dim_features",
+        help="Dimension of embedding",
+        default=128,
+    )
+    parser.add_argument(
+        "--context_size",
+        help="Context size for skip-gram model (windows size)",
+        default=10,
+    )
+    parser.add_argument(
+        "--mode",
+        help="Train or resume training",
+        default='train',
+    )
+    parser.add_argument(
+        "--epochs",
+        help="Number of epochs to run the model",
+        default=10,
+    )
 
     args = parser.parse_args()
     if args.save is None:
@@ -135,7 +159,12 @@ def main():
     matrix_prob = get_transition_probabilites(df, False)
     list_nodes = list_all_nodes(df)
     user_nodes = list_user_nodes(df)
-    learn_features(matrix_prob, list_nodes, user_nodes, args.save, walks_per_node=3, walk_length=5, context_size=2)
+
+    if args.context_size >= args.walk_length:
+        raise ValueError("Context size can't be greater or equal to walk length !")
+
+    walks = sample_walks(matrix_prob, list_nodes, args.walks_per_node, args.walk_length)
+    optimize(walks, user_nodes, 'train', args.save, args.epochs, args.context_size, args.dim_features)
 
 
 if __name__ == "__main__":
