@@ -25,12 +25,6 @@ jobs:
           key: dependencies-{{ checksum "requirements/common.txt" }}-{{ checksum "requirements/dev.txt" }}
 
       - run:
-          name: lint
-          command: |
-            . ~/venv/bin/activate
-            ./scripts/lint.sh
-
-      - run:
           name: test
           command: |
             . ~/venv/bin/activate
