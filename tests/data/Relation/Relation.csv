@@ -1,6 +1,11 @@
 ,userid,like_id
-0,i,24
-1,ii,45
-2,iii,2
-3,iv,35
-4,v,38
+0,user1,page1
+1,user2,page1
+2,user2,page2
+3,user2,page4
+4,user3,page3
+5,user4,page2
+6,user4,page3
+7,user5,page2
+8,user6,page1
+9,user6,page3
