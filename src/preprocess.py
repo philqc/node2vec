@@ -28,6 +28,11 @@ def list_all_nodes(df: pd.DataFrame) -> List[str]:
     return list(users) + list(pages)
 
 
+def list_user_nodes(df: pd.DataFrame) -> List[str]:
+    users = df[USER_ID].unique()
+    return list(users)
+
+
 def get_neighbors_neighbors(df_start, df_neighbors):
     dct = {}
     for previous, possible_starts in df_start.items():

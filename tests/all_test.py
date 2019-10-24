@@ -1,6 +1,6 @@
 import unittest
 from src.preprocess import *
-from src.main import random_walk
+from src.learn_features import random_walk
 from src.utils import project_root
 import os
 
