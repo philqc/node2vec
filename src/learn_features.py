@@ -147,6 +147,16 @@ def main():
         help="Number of epochs to run the model",
         default=10,
     )
+    parser.add_argument(
+        "--p",
+        help="Parameter p of node2vec model",
+        default=1.0,
+    )
+    parser.add_argument(
+        "--q",
+        help="Parameter q of node2vec model",
+        default=0.5,
+    )
 
     args = parser.parse_args()
     if args.save is None:
@@ -156,7 +166,7 @@ def main():
     args.save = os.path.join(args.save, FILE_EMBEDDINGS)
 
     df = load_csv(args.data)
-    matrix_prob = get_transition_probabilites(df, False)
+    matrix_prob = get_transition_probabilites(df, False, args.p, args.q)
     list_nodes = list_all_nodes(df)
     user_nodes = list_user_nodes(df)
 

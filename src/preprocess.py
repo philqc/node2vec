@@ -33,13 +33,13 @@ def list_user_nodes(df: pd.DataFrame) -> List[str]:
     return list(users)
 
 
-def get_neighbors_neighbors(df_start, df_neighbors):
+def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float) -> Dict:
     dct = {}
     for previous, possible_starts in df_start.items():
         dct[previous] = {}
         for start in possible_starts:
             # Probability to get back to itself
-            dct[previous][start] = {previous: 1 / PARAMETERS["p"]}
+            dct[previous][start] = {previous: 1 / p}
             for neighbor in df_neighbors[start]:
                 # Second neighbors
                 if neighbor != previous:
@@ -49,21 +49,22 @@ def get_neighbors_neighbors(df_start, df_neighbors):
                         dct[previous][start][neighbor] = 1
                     else:
                         # there is a distance of 2 between previous and neighbor
-                        dct[previous][start][neighbor] = 1 / PARAMETERS["q"]
+                        dct[previous][start][neighbor] = 1 / q
             # Transform to probability distribution
             dct[previous][start] = prob_distribution_from_dict(dct[previous][start])
 
     return dct
 
 
-def get_transition_probabilites(df: pd.DataFrame, save_dict: bool) -> Dict[str, Dict[str, Dict[str, float]]]:
+def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, p: float = PARAMETERS["p"],
+                                q: float = PARAMETERS["q"]) -> Dict[str, Dict[str, Dict[str, float]]]:
     df_users = df.groupby(USER_ID)[LIKE_ID].apply(list)
     df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
 
     # Users'neighbors and neighbors'neighbors
-    user_neighbors = get_neighbors_neighbors(df_users, df_pages)
+    user_neighbors = get_neighbors_neighbors(df_users, df_pages, p, q)
     # Now get pages'neighbors and neighbors'neighbors
-    pages_neighbors = get_neighbors_neighbors(df_pages, df_users)
+    pages_neighbors = get_neighbors_neighbors(df_pages, df_users, p, q)
 
     # This all neighbors now
     user_neighbors.update(pages_neighbors)
