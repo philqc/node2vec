@@ -10,7 +10,7 @@ TEST_CSV = os.path.join(project_root(), "tests", "data", "Relation", "Relation.c
 class UtilsTest(unittest.TestCase):
     def setUp(self) -> None:
         self.df = load_csv(TEST_CSV)
-        self.matrix_probs = get_transition_probabilites(self.df, False)
+        self.matrix_probs, self.all_nodes = get_transition_probabilites(self.df, False, drop_page_ids=False)
 
     def test_neighbors(self):
 

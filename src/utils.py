@@ -18,6 +18,16 @@ def prob_distribution_from_dict(dct: Dict):
     return dct
 
 
+# Class for a memory-friendly iterator over the dataset
+class MySentences(object):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def __iter__(self):
+        for line in open(self.filename, encoding='utf-8'):
+            yield line
+
+
 class EpochSaver(CallbackAny2Vec):
     """Callback to save model after each epoch."""
 

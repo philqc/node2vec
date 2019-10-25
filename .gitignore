@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 /tests/data/features_node2vec.csv
+/tests/data/sampled_walks.txt
 /.idea/
 
 # Distribution / packaging

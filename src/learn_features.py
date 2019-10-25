@@ -4,7 +4,7 @@ from pprint import pprint
 import pdb
 import json
 import argparse
-from src.utils import EpochSaver, RELATIONS
+from src.utils import EpochSaver, RELATIONS, MySentences
 import multiprocessing
 import random
 import gensim
@@ -14,6 +14,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
                     datefmt="%Y-%m-%d %H:%M:%S")
 
 FILE_EMBEDDINGS = "features_node2vec.csv"
+FILE_SAMPLED_WALKS = "sampled_walks.txt"
 
 
 def random_walk(matrix_prob: Dict, previous_node: str, length: int):
@@ -41,23 +42,22 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
     return walk[1:]
 
 
-def sample_walks(matrix_prob: Dict, all_nodes: List[str], walks_per_node: int = 10, walk_length: int = 80):
-    walks = []
-    for i in range(walks_per_node):
-        for node in all_nodes:
-            walks.append(random_walk(matrix_prob, node, walk_length))
-        logging.info("One walk per node completed (%s) total" % i)
+def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
+                 walks_per_node: int = 10, walk_length: int = 80):
+    with open(path_save, 'w', encoding='utf-8') as f_txt:
+        for i in range(walks_per_node):
+            for node in all_nodes:
+                f_txt.write(" ".join(random_walk(matrix_prob, node, walk_length)) + '\n')
+            logging.info("One walk per node completed (%s) total" % i)
 
-    return walks
 
-
-def optimize(walks: List[List[str]], user_nodes: List[str], mode: str, path_save: str,
+def optimize(path_sentences: str, user_nodes: List[str], mode: str, path_save: str,
              epochs: int = 10, context_size: int = 10, dim_features: int = 128, path_model: str = None):
     """
+    :param path_sentences: Input of .txt file to sentences (one sentence per line)
     :param epochs: number of epochs to run model
     :param path_save: where to save the embeddings
     :param user_nodes: List of all user ids
-    :param walks: Input of "sentences"
     :param context_size: Also called window size
     :param dim_features:
     :param mode: {'train' or 'resume'} resume to resume training
@@ -74,16 +74,19 @@ def optimize(walks: List[List[str]], user_nodes: List[str], mode: str, path_save
     # minimum term frequency (to define the vocabulary)
     min_count = 2
 
+    # a memory-friendly iterator
+    sentences = MySentences(path_sentences)
+
     if mode == 'train':
         logging.info('Starting Training of Word2Vec Model')
-        model = gensim.models.Word2Vec(walks, min_count=min_count, sg=1, size=dim_features,
+        model = gensim.models.Word2Vec(sentences, min_count=min_count, sg=1, size=dim_features,
                                        iter=epochs, workers=cores, negative=n_negative_samples,
                                        window=context_size, callbacks=[epoch_logger])
     elif mode == 'resume':
         logging.info('Resuming Training of Word2Vec Model')
         model = gensim.models.Word2Vec.load(path_model)
         # Start at the learning rate that we previously stopped
-        model.train(walks, total_examples=model.corpus_count, epochs=epochs,
+        model.train(sentences, total_examples=model.corpus_count, epochs=epochs,
                     start_alpha=model.min_alpha_yet_reached, callbacks=[epoch_logger])
     else:
         raise ValueError('Specify valid value for mode (%s)' % mode)
@@ -104,19 +107,18 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, user_nodes: List[str
     df.to_csv(path_save)
 
 
-def preparing_samples(args):
+def preparing_samples(args, path_save_sentences: str):
     logging.info("Loading data...")
     df = load_csv(args.data)
     logging.info("Precomputing transition probabilities...")
-    matrix_prob = get_transition_probabilites(df, False, args.p, args.q)
-    list_nodes = list_all_nodes(df)
+    matrix_prob, list_nodes = get_transition_probabilites(df, save_dict=False, drop_page_ids=True, p=args.p, q=args.q)
 
     if args.context_size >= args.walk_length:
         raise ValueError("Context size can't be greater or equal to walk length !")
 
     logging.info("Sampling walks to create our dataset")
-    walks = sample_walks(matrix_prob, list_nodes, args.walks_per_node, args.walk_length)
-    return walks, list_user_nodes(df)
+    sample_walks(path_save_sentences, matrix_prob, list_nodes, args.walks_per_node, args.walk_length)
+    return list_user_nodes(df)
 
 
 def main():
@@ -185,14 +187,17 @@ def main():
     args = parser.parse_args()
     if args.save is None:
         args.save = args.data
+
+    # Save sample sentences (random walks) to a .txt file to be memory efficient
+    path_sentences = os.path.join(args.save, FILE_SAMPLED_WALKS)
     # Get to Relation.csv
     args.data = os.path.join(args.data, RELATIONS)
     args.save = os.path.join(args.save, FILE_EMBEDDINGS)
 
-    walks, user_nodes = preparing_samples(args)
+    user_nodes = preparing_samples(args, path_sentences)
 
     logging.info("Starting training of skip-gram model")
-    optimize(walks, user_nodes, 'train', args.save, args.epochs, args.context_size, args.dim_features)
+    optimize(path_sentences, user_nodes, 'train', args.save, args.epochs, args.context_size, args.dim_features)
 
 
 if __name__ == "__main__":

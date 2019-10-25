@@ -1,7 +1,7 @@
 import pandas as pd
 from src.utils import project_root, prob_distribution_from_dict, RELATIONS
 import os
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import pdb
 import json
 import logging
@@ -61,10 +61,29 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
     return dct
 
 
-def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, p: float = PARAMETERS["p"],
-                                q: float = PARAMETERS["q"]) -> Dict[str, Dict[str, Dict[str, float]]]:
+def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, drop_page_ids: bool, p: float = PARAMETERS["p"],
+                                q: float = PARAMETERS["q"]) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
+
+    if drop_page_ids:
+        df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
+        len_bef = len(df)
+        logging.info("Dropping pages with only 1 like -> Shape before = {}".format(df.shape))
+        pages_to_drop = []
+        for page_id, user_liked in df_pages.iteritems():
+            if len(user_liked) == 1:
+                pages_to_drop.append(page_id)
+
+        df = df[~df[LIKE_ID].isin(pages_to_drop)]
+        logging.info("Dropped a total of {} page_ids".format(len_bef - df.shape[0]))
+
+    # Calculate this here cuz we modify dataframe
+    all_nodes = list_all_nodes(df)
+
     df_users = df.groupby(USER_ID)[LIKE_ID].apply(list)
+    # Recompute df_pages as well
     df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
+
+    # Modify df now removing columns with page ids to drop
     logging.info("df_users.shape = %s; df_pages.shape = %s" % (df_users.shape, df_pages.shape))
 
     logging.info("Getting Users' neighbors and its neighbors' neighbors")
@@ -79,13 +98,12 @@ def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, p: float = PA
         with open(PATH_PROBS, 'w', encoding='utf-8') as f_out:
             json.dump(user_neighbors, f_out)
 
-    return user_neighbors
+    return user_neighbors, all_nodes
 
 
 def main():
     df = load_csv(TEST_CSV)
-    all_nodes = list_all_nodes(df)
-    # get_transition_probabilites(df, True)
+    get_transition_probabilites(df, True, True)
     #pdb.set_trace()
 
 
