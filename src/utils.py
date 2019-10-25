@@ -25,7 +25,7 @@ class MySentences(object):
 
     def __iter__(self):
         for line in open(self.filename, encoding='utf-8'):
-            yield line
+            yield line.split()
 
 
 class EpochSaver(CallbackAny2Vec):

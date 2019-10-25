@@ -77,6 +77,9 @@ def optimize(path_sentences: str, user_nodes: List[str], mode: str, path_save: s
     # a memory-friendly iterator
     sentences = MySentences(path_sentences)
 
+    for s in sentences:
+        print(s)
+
     if mode == 'train':
         logging.info('Starting Training of Word2Vec Model')
         model = gensim.models.Word2Vec(sentences, min_count=min_count, sg=1, size=dim_features,

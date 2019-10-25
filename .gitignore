@@ -8,6 +8,8 @@ __pycache__/
 
 /tests/data/features_node2vec.csv
 /tests/data/sampled_walks.txt
+/tests/prob_relations.json
+/tests/data/prob_relations.json
 /.idea/
 
 # Distribution / packaging
