@@ -39,7 +39,7 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
     dct = {}
     logging.info("get_neighbors_neighbors: %s ids to compute" % len(df_start))
     for i, (previous, possible_starts) in enumerate(df_start.items()):
-        if i % 1000 == 0 and i > 0:
+        if i % 100 == 0 and i > 0:
             logging.info("Precomputed %s nodes" % i)
         dct[previous] = {}
         for start in possible_starts:
