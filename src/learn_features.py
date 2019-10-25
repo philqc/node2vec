@@ -46,6 +46,7 @@ def sample_walks(matrix_prob: Dict, all_nodes: List[str], walks_per_node: int = 
     for i in range(walks_per_node):
         for node in all_nodes:
             walks.append(random_walk(matrix_prob, node, walk_length))
+        logging.info("One walk per node completed (%s) total" % i)
 
     return walks
 
