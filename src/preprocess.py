@@ -4,7 +4,9 @@ import os
 from typing import Dict, List
 import pdb
 import json
-from pprint import pprint
+import logging
+logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
+                    datefmt="%Y-%m-%d %H:%M:%S")
 
 TEST_CSV = os.path.join(project_root(), "tests", "data", RELATIONS)
 PATH_PROBS = os.path.join(project_root(), "tests", "prob_relations.json")
@@ -35,7 +37,10 @@ def list_user_nodes(df: pd.DataFrame) -> List[str]:
 
 def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float) -> Dict:
     dct = {}
-    for previous, possible_starts in df_start.items():
+    logging.info("get_neighbors_neighbors: %s ids to compute" % len(df_start))
+    for i, (previous, possible_starts) in enumerate(df_start.items()):
+        if i % 1000 == 0 and i > 0:
+            logging.info("Precomputed %s nodes" % i)
         dct[previous] = {}
         for start in possible_starts:
             # Probability to get back to itself
@@ -61,12 +66,12 @@ def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, p: float = PA
     df_users = df.groupby(USER_ID)[LIKE_ID].apply(list)
     df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
 
-    # Users'neighbors and neighbors'neighbors
+    logging.info("Getting Users' neighbors and its neighbors' neighbors")
     user_neighbors = get_neighbors_neighbors(df_users, df_pages, p, q)
-    # Now get pages'neighbors and neighbors'neighbors
+    logging.info("Getting Pages' neighbors and its neighbors' neighbors")
     pages_neighbors = get_neighbors_neighbors(df_pages, df_users, p, q)
 
-    # This all neighbors now
+    # This is all neighbors now
     user_neighbors.update(pages_neighbors)
 
     if save_dict:

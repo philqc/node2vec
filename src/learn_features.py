@@ -120,41 +120,49 @@ def main():
     parser.add_argument(
         "--walks_per_node",
         help="Number of random samples starting from each node",
+        type=int,
         default=10,
     )
     parser.add_argument(
         "--walk_length",
         help="Length of the random walk",
+        type=int,
         default=80,
     )
     parser.add_argument(
         "--dim_features",
         help="Dimension of embedding",
+        type=int,
         default=128,
     )
     parser.add_argument(
         "--context_size",
         help="Context size for skip-gram model (windows size)",
+        type=int,
         default=10,
     )
     parser.add_argument(
         "--mode",
         help="Train or resume training",
+        type=str,
         default='train',
     )
     parser.add_argument(
         "--epochs",
         help="Number of epochs to run the model",
+        type=int,
         default=10,
     )
     parser.add_argument(
         "--p",
         help="Parameter p of node2vec model",
+        type=float,
         default=1.0,
     )
     parser.add_argument(
         "--q",
         help="Parameter q of node2vec model",
+        type=float,
         default=0.5,
     )
 
