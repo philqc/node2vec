@@ -103,6 +103,21 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, user_nodes: List[str
     df.to_csv(path_save)
 
 
+def preparing_samples(args):
+    logging.info("Loading data...")
+    df = load_csv(args.data)
+    logging.info("Precomputing transition probabilities...")
+    matrix_prob = get_transition_probabilites(df, False, args.p, args.q)
+    list_nodes = list_all_nodes(df)
+
+    if args.context_size >= args.walk_length:
+        raise ValueError("Context size can't be greater or equal to walk length !")
+
+    logging.info("Sampling walks to create our dataset")
+    walks = sample_walks(matrix_prob, list_nodes, args.walks_per_node, args.walk_length)
+    return walks, list_user_nodes(df)
+
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -172,18 +187,9 @@ def main():
     # Get to Relation.csv
     args.data = os.path.join(args.data, RELATIONS)
     args.save = os.path.join(args.save, FILE_EMBEDDINGS)
-    logging.info("Loading data...")
-    df = load_csv(args.data)
-    logging.info("Precomputing transition probabilities...")
-    matrix_prob = get_transition_probabilites(df, False, args.p, args.q)
-    list_nodes = list_all_nodes(df)
-    user_nodes = list_user_nodes(df)
 
-    if args.context_size >= args.walk_length:
-        raise ValueError("Context size can't be greater or equal to walk length !")
+    walks, user_nodes = preparing_samples(args)
 
-    logging.info("Sampling walks to create our dataset")
-    walks = sample_walks(matrix_prob, list_nodes, args.walks_per_node, args.walk_length)
     logging.info("Starting training of skip-gram model")
     optimize(walks, user_nodes, 'train', args.save, args.epochs, args.context_size, args.dim_features)
 
