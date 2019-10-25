@@ -21,6 +21,9 @@ PARAMETERS = {
 
 def load_csv(path_csv: str) -> pd.DataFrame:
     df = pd.read_csv(path_csv)
+    # make sure every id is a string for skipgram model
+    df[USER_ID] = df[USER_ID].astype(str)
+    df[LIKE_ID] = df[LIKE_ID].astype(str)
     return df
 
 
