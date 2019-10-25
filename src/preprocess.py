@@ -65,6 +65,7 @@ def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, p: float = PA
                                 q: float = PARAMETERS["q"]) -> Dict[str, Dict[str, Dict[str, float]]]:
     df_users = df.groupby(USER_ID)[LIKE_ID].apply(list)
     df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
+    logging.info("df_users.shape = %s; df_pages.shape = %s" % (df_users.shape, df_pages.shape))
 
     logging.info("Getting Users' neighbors and its neighbors' neighbors")
     user_neighbors = get_neighbors_neighbors(df_users, df_pages, p, q)
