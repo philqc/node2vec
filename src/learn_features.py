@@ -15,6 +15,7 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 
 FILE_EMBEDDINGS = "features_node2vec.csv"
 FILE_SAMPLED_WALKS = "sampled_walks.txt"
+ID = "id"
 
 
 def random_walk(matrix_prob: Dict, previous_node: str, length: int):
@@ -68,7 +69,7 @@ def optimize(path_sentences: str, user_nodes: List[str], mode: str, path_save: s
     cores = multiprocessing.cpu_count()
 
     # save model each epoch
-    epoch_logger = EpochSaver('word2vec')
+    # epoch_logger = EpochSaver('word2vec')
 
     n_negative_samples = 10
     # minimum term frequency (to define the vocabulary)
@@ -77,20 +78,17 @@ def optimize(path_sentences: str, user_nodes: List[str], mode: str, path_save: s
     # a memory-friendly iterator
     sentences = MySentences(path_sentences)
 
-    for s in sentences:
-        print(s)
-
     if mode == 'train':
         logging.info('Starting Training of Word2Vec Model')
         model = gensim.models.Word2Vec(sentences, min_count=min_count, sg=1, size=dim_features,
                                        iter=epochs, workers=cores, negative=n_negative_samples,
-                                       window=context_size, callbacks=[epoch_logger])
+                                       window=context_size)
     elif mode == 'resume':
         logging.info('Resuming Training of Word2Vec Model')
         model = gensim.models.Word2Vec.load(path_model)
         # Start at the learning rate that we previously stopped
         model.train(sentences, total_examples=model.corpus_count, epochs=epochs,
-                    start_alpha=model.min_alpha_yet_reached, callbacks=[epoch_logger])
+                    start_alpha=model.min_alpha_yet_reached)
     else:
         raise ValueError('Specify valid value for mode (%s)' % mode)
 
@@ -107,6 +105,7 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, user_nodes: List[str
             embeddings[v] = vec
 
     df = pd.DataFrame(embeddings).T
+    df.index.name = ID
     df.to_csv(path_save)
 
 
