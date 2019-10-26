@@ -33,9 +33,8 @@ def list_all_nodes(df: pd.DataFrame) -> List[str]:
     return list(users) + list(pages)
 
 
-def list_user_nodes(df: pd.DataFrame) -> List[str]:
-    users = df[USER_ID].unique()
-    return list(users)
+def list_pages_nodes(df: pd.DataFrame) -> List[str]:
+    return list(df[LIKE_ID].unique())
 
 
 def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float) -> Dict:

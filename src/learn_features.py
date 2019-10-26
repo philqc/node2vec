@@ -52,13 +52,13 @@ def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
             logging.info("One walk per node completed (%s) total" % i)
 
 
-def optimize(path_sentences: str, user_nodes: List[str], mode: str, path_save: str,
+def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: str,
              epochs: int = 10, context_size: int = 10, dim_features: int = 128, path_model: str = None):
     """
     :param path_sentences: Input of .txt file to sentences (one sentence per line)
     :param epochs: number of epochs to run model
     :param path_save: where to save the embeddings
-    :param user_nodes: List of all user ids
+    :param page_nodes: List of all pages ids
     :param context_size: Also called window size
     :param dim_features:
     :param mode: {'train' or 'resume'} resume to resume training
@@ -92,15 +92,15 @@ def optimize(path_sentences: str, user_nodes: List[str], mode: str, path_save: s
     else:
         raise ValueError('Specify valid value for mode (%s)' % mode)
 
-    write_embeddings_to_file(model, user_nodes, path_save)
+    write_embeddings_to_file(model, page_nodes, path_save)
 
 
-def write_embeddings_to_file(model: gensim.models.Word2Vec, user_nodes: List[str], path_save: str):
+def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str], path_save: str):
     logging.info('Writting embeddings to file %s' % path_save)
     embeddings = {}
     for v in list(model.wv.vocab):
-        # we only keep users' embeddings
-        if v in user_nodes:
+        # we only keep pages' embeddings
+        if v in page_nodes:
             vec = list(model.wv.__getitem__(v))
             embeddings[v] = vec
 
@@ -120,7 +120,7 @@ def preparing_samples(args, path_save_sentences: str):
 
     logging.info("Sampling walks to create our dataset")
     sample_walks(path_save_sentences, matrix_prob, list_nodes, args.walks_per_node, args.walk_length)
-    return list_user_nodes(df)
+    return list_pages_nodes(df)
 
 
 def main():
@@ -196,10 +196,10 @@ def main():
     args.data = os.path.join(args.data, RELATIONS)
     args.save = os.path.join(args.save, FILE_EMBEDDINGS)
 
-    user_nodes = preparing_samples(args, path_sentences)
+    page_nodes = preparing_samples(args, path_sentences)
 
     logging.info("Starting training of skip-gram model")
-    optimize(path_sentences, user_nodes, 'train', args.save, args.epochs, args.context_size, args.dim_features)
+    optimize(path_sentences, page_nodes, 'train', args.save, args.epochs, args.context_size, args.dim_features)
 
 
 if __name__ == "__main__":
