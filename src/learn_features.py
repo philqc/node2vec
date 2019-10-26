@@ -16,6 +16,10 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 FILE_EMBEDDINGS = "features_node2vec.csv"
 FILE_SAMPLED_WALKS = "sampled_walks.txt"
 ID = "id"
+TRAIN = "train"
+RESUME = "resume"
+ALL = "all"
+PREPROCESS = "preprocess"
 
 
 def random_walk(matrix_prob: Dict, previous_node: str, length: int):
@@ -49,7 +53,7 @@ def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
         for i in range(walks_per_node):
             for node in all_nodes:
                 f_txt.write(" ".join(random_walk(matrix_prob, node, walk_length)) + '\n')
-            logging.info("One walk per node completed (%s) total" % i)
+            logging.info("One walk per node completed (%s) total" % (i + 1))
 
 
 def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: str,
@@ -78,12 +82,12 @@ def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: s
     # a memory-friendly iterator
     sentences = MySentences(path_sentences)
 
-    if mode == 'train':
+    if mode == TRAIN:
         logging.info('Starting Training of Word2Vec Model')
         model = gensim.models.Word2Vec(sentences, min_count=min_count, sg=1, size=dim_features,
                                        iter=epochs, workers=cores, negative=n_negative_samples,
                                        window=context_size)
-    elif mode == 'resume':
+    elif mode == RESUME:
         logging.info('Resuming Training of Word2Vec Model')
         model = gensim.models.Word2Vec.load(path_model)
         # Start at the learning rate that we previously stopped
@@ -163,9 +167,9 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        help="Train or resume training",
+        help="{preprocess, train, resume, all}",
         type=str,
-        default='train',
+        default='all',
     )
     parser.add_argument(
         "--epochs",
@@ -196,10 +200,15 @@ def main():
     args.data = os.path.join(args.data, RELATIONS)
     args.save = os.path.join(args.save, FILE_EMBEDDINGS)
 
-    page_nodes = preparing_samples(args, path_sentences)
+    if args.mode in [PREPROCESS, ALL]:
+        page_nodes = preparing_samples(args, path_sentences)
+    else:
+        df = load_csv(args.data)
+        page_nodes = list_pages_nodes(df)
 
-    logging.info("Starting training of skip-gram model")
-    optimize(path_sentences, page_nodes, 'train', args.save, args.epochs, args.context_size, args.dim_features)
+    if args.mode in [ALL, TRAIN, RESUME]:
+        logging.info("Starting training of skip-gram model")
+        optimize(path_sentences, page_nodes, args.mode, args.save, args.epochs, args.context_size, args.dim_features)
 
 
 if __name__ == "__main__":
