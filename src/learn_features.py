@@ -103,7 +103,7 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str
         # we only keep pages' embeddings
         if v in page_nodes:
             vec = model.wv.__getitem__(v)
-            embeddings[v] = vec
+            embeddings[str(v)] = vec
 
     with open(path_save, "wb") as f_out:
         pickle.dump(embeddings, f_out)
