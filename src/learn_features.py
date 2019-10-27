@@ -1,10 +1,7 @@
 import numpy as np
-from typing import Dict, List
-from pprint import pprint
-import pdb
-import json
+import pickle
 import argparse
-from src.utils import EpochSaver, RELATIONS, MySentences
+from src.utils import EpochSaver, MySentences
 import multiprocessing
 import random
 import gensim
@@ -13,7 +10,7 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
 
-FILE_EMBEDDINGS = "features_node2vec.csv"
+FILE_EMBEDDINGS = "features_node2vec.pkl"
 FILE_SAMPLED_WALKS = "sampled_walks.txt"
 ID = "id"
 TRAIN = "train"
@@ -82,7 +79,7 @@ def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: s
     # a memory-friendly iterator
     sentences = MySentences(path_sentences)
 
-    if mode == TRAIN:
+    if mode in [TRAIN, ALL]:
         logging.info('Starting Training of Word2Vec Model')
         model = gensim.models.Word2Vec(sentences, min_count=min_count, sg=1, size=dim_features,
                                        iter=epochs, workers=cores, negative=n_negative_samples,
@@ -105,12 +102,11 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str
     for v in list(model.wv.vocab):
         # we only keep pages' embeddings
         if v in page_nodes:
-            vec = list(model.wv.__getitem__(v))
+            vec = model.wv.__getitem__(v)
             embeddings[v] = vec
 
-    df = pd.DataFrame(embeddings).T
-    df.index.name = ID
-    df.to_csv(path_save)
+    with open(path_save, "wb") as f_out:
+        pickle.dump(embeddings, f_out)
 
 
 def preparing_samples(args, path_save_sentences: str):
