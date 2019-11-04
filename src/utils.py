@@ -18,6 +18,24 @@ def prob_distribution_from_dict(dct: Dict):
     return dct
 
 
+def modify_path_if_exists(path, extension: str):
+    """
+    If path exists, iterates until we find a path
+    that doesn't exist to store model/file
+    :param path:
+    :param extension: ['json', 'pkl', 'txt', etc.]
+    """
+    extension = '.' + extension
+    if os.path.exists(path + extension):
+        i = 0
+        while os.path.exists(path + '_' + str(i) + extension):
+            i += 1
+        path += '_' + str(i) + extension
+    else:
+        path += extension
+    return path
+
+
 # Class for a memory-friendly iterator over the dataset
 class MySentences(object):
     def __init__(self, filename):

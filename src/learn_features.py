@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import argparse
 from src.utils import EpochSaver, MySentences
+from typing import List, Dict
 import multiprocessing
 import random
 import gensim
