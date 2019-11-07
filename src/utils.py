@@ -5,7 +5,8 @@ from gensim.models.callbacks import CallbackAny2Vec
 import os
 
 RELATIONS = os.path.join("Relation", "Relation.csv")
-
+BLOGCATALOG_EDGE = os.path.join("BlogCatalog-dataset/data", "edges.csv")
+BLOGCATALOG_NODE = os.path.join("BlogCatalog-dataset/data", "nodes.csv")
 
 def project_root() -> Path:
     """Returns project root folder."""

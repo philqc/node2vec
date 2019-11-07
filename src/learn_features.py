@@ -1,12 +1,12 @@
 import numpy as np
 import pickle
 import argparse
-from src.utils import EpochSaver, MySentences
+from utils import EpochSaver, MySentences
 from typing import List, Dict
 import multiprocessing
 import random
 import gensim
-from src.preprocess import *
+from preprocess_blogCatalog import *
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
@@ -112,7 +112,7 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str
 
 def preparing_samples(args, path_save_sentences: str):
     logging.info("Loading data...")
-    df = load_csv(args.data)
+    df = load_edges(args.data)
     logging.info("Precomputing transition probabilities...")
     matrix_prob, list_nodes = get_transition_probabilites(df, save_dict=False, drop_page_ids=True, p=args.p, q=args.q)
 
@@ -194,13 +194,13 @@ def main():
     # Save sample sentences (random walks) to a .txt file to be memory efficient
     path_sentences = os.path.join(args.save, FILE_SAMPLED_WALKS)
     # Get to Relation.csv
-    args.data = os.path.join(args.data, RELATIONS)
+    args.data = os.path.join(args.data, BLOGCATALOG_EDGE)
     args.save = os.path.join(args.save, FILE_EMBEDDINGS)
 
     if args.mode in [PREPROCESS, ALL]:
         page_nodes = preparing_samples(args, path_sentences)
     else:
-        df = load_csv(args.data)
+        df = load_edges(args.data)
         page_nodes = list_pages_nodes(df)
 
     if args.mode in [ALL, TRAIN, RESUME]:
