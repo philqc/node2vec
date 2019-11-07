@@ -11,8 +11,6 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
 
-FILE_EMBEDDINGS = "features_node2vec.pkl"
-FILE_SAMPLED_WALKS = "sampled_walks.txt"
 ID = "id"
 TRAIN = "train"
 RESUME = "resume"
@@ -114,7 +112,8 @@ def preparing_samples(args, path_save_sentences: str):
     logging.info("Loading data...")
     df = load_csv(args.data)
     logging.info("Precomputing transition probabilities...")
-    matrix_prob, list_nodes = get_transition_probabilites(df, save_dict=False, drop_page_ids=True, p=args.p, q=args.q)
+    matrix_prob, list_nodes = get_transition_probabilites(df, save_dict=False, drop_page_ids=True,
+                                                          min_like=args.min_like, p=args.p, q=args.q)
 
     if args.context_size >= args.walk_length:
         raise ValueError("Context size can't be greater or equal to walk length !")
@@ -186,16 +185,27 @@ def main():
         type=float,
         default=0.5,
     )
+    parser.add_argument(
+        "--min_like",
+        help="A page needs min_like to be in the dataset",
+        type=int,
+        default=2,
+    )
 
     args = parser.parse_args()
     if args.save is None:
         args.save = args.data
 
+    str_save = "_p_{}_q_{}_epochs_{}_dim_{}_minLike_{}".format(args.p, args.q, args.epochs,
+                                                                args.dim_features, args.min_like)
+    file_sampled_walks = "sampled_walks" + str_save + ".txt"
     # Save sample sentences (random walks) to a .txt file to be memory efficient
-    path_sentences = os.path.join(args.save, FILE_SAMPLED_WALKS)
+    path_sentences = os.path.join(args.save, file_sampled_walks)
     # Get to Relation.csv
     args.data = os.path.join(args.data, RELATIONS)
-    args.save = os.path.join(args.save, FILE_EMBEDDINGS)
+
+    file_embeddings = "features_node2vec" + str_save + ".pkl"
+    args.save = os.path.join(args.save, file_embeddings)
 
     if args.mode in [PREPROCESS, ALL]:
         page_nodes = preparing_samples(args, path_sentences)

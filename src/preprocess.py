@@ -63,20 +63,27 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
     return dct
 
 
-def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, drop_page_ids: bool, p: float = PARAMETERS["p"],
-                                q: float = PARAMETERS["q"]) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
+def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, drop_page_ids: bool, min_like: int,
+                                p: float = PARAMETERS["p"], q: float = PARAMETERS["q"]) \
+        -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
 
     if drop_page_ids:
-        df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
-        len_bef = len(df)
-        logging.info("Dropping pages with only 1 like -> Shape before = {}".format(df.shape))
-        pages_to_drop = []
-        for page_id, user_liked in df_pages.iteritems():
-            if len(user_liked) == 1:
-                pages_to_drop.append(page_id)
+        if min_like <= 1:
+            logging.warning("drop_page_ids is set to true but min_like (%s) <= 1 --> no pages will be removed"
+                            % min_like)
+        else:
+            df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
+            len_bef = len(df)
+            logging.info("Dropping pages with less than {} likes -> Shape before = {}".format(min_like, df.shape))
+            pages_to_drop = []
+            for page_id, user_liked in df_pages.iteritems():
+                if len(user_liked) < min_like:
+                    pages_to_drop.append(page_id)
 
-        df = df[~df[LIKE_ID].isin(pages_to_drop)]
-        logging.info("Dropped a total of {} page_ids".format(len_bef - df.shape[0]))
+            df = df[~df[LIKE_ID].isin(pages_to_drop)]
+            logging.info("Dropped a total of {} page_ids".format(len_bef - df.shape[0]))
+    if len(df) == 0:
+        raise RuntimeError("No more pages left (either min_like (%s) is too big or input data is invalid" % min_like)
 
     # Calculate this here cuz we modify dataframe
     all_nodes = list_all_nodes(df)
