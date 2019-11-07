@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from utils import project_root, prob_distribution_from_dict, BLOGCATALOG_EDGE
+from src.utils import project_root, prob_distribution_from_dict, BLOGCATALOG_EDGE
 import os
 from typing import Dict, List, Tuple
 import pdb
@@ -34,8 +34,12 @@ def load_edges(edge_csv: str) -> pd.DataFrame:
 def list_all_nodes(df: pd.DataFrame) -> List[str]:
     users = df[COL1].unique()
     pages = df[COL2].unique()
-    return set(users).union(set(pages))
+    return list(set(users).union(set(pages)))
 
+def list_pages_nodes(df: pd.DataFrame) -> List[str]:
+    users = df[COL1].unique()
+    pages = df[COL2].unique()
+    return list(set(users).union(set(pages)))
 
 
 def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float) -> Dict:
