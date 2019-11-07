@@ -8,6 +8,7 @@ import random
 import gensim
 from src.preprocess import *
 import logging
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
 
@@ -124,7 +125,6 @@ def preparing_samples(args, path_save_sentences: str):
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data",
@@ -196,13 +196,15 @@ def main():
     if args.save is None:
         args.save = args.data
 
-    str_save = "_p_{}_q_{}_epochs_{}_dim_{}_minLike_{}".format(args.p, args.q, args.epochs,
-                                                                args.dim_features, args.min_like)
+    str_save = "_p_{}_q_{}_dim_{}_minLike_{}".format(args.p, args.q, args.dim_features, args.min_like)
     file_sampled_walks = "sampled_walks" + str_save + ".txt"
     # Save sample sentences (random walks) to a .txt file to be memory efficient
     path_sentences = os.path.join(args.save, file_sampled_walks)
     # Get to Relation.csv
     args.data = os.path.join(args.data, RELATIONS)
+
+    # add number of epochs for name file of embeddings
+    str_save += "_epochs_{}".format(args.epochs)
 
     file_embeddings = "features_node2vec" + str_save + ".pkl"
     args.save = os.path.join(args.save, file_embeddings)
