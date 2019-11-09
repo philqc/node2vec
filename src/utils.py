@@ -7,6 +7,9 @@ import os
 RELATIONS = os.path.join("Relation", "Relation.csv")
 BLOGCATALOG_EDGE = os.path.join("BlogCatalog-dataset/data", "edges.csv")
 BLOGCATALOG_NODE = os.path.join("BlogCatalog-dataset/data", "nodes.csv")
+BLOGCATALOG_FEATURES = os.path.join("./", "features_node2vec.pkl")
+BLOGCATALOG_LABELS = os.path.join("BlogCatalog-dataset/data", "group-edges.csv")
+
 
 def project_root() -> Path:
     """Returns project root folder."""

@@ -1,12 +1,12 @@
 import numpy as np
 import pickle
 import argparse
-from src.utils import EpochSaver, MySentences
+from utils import EpochSaver, MySentences
 from typing import List, Dict
 import multiprocessing
 import random
 import gensim
-from src.preprocess_blogCatalog import *
+from preprocess_blogCatalog import *
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
@@ -172,7 +172,7 @@ def main():
         "--epochs",
         help="Number of epochs to run the model",
         type=int,
-        default=10,
+        default=1,
     )
     parser.add_argument(
         "--p",
