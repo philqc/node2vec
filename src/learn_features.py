@@ -1,12 +1,13 @@
 import numpy as np
 import pickle
 import argparse
-from utils import EpochSaver, MySentences
+from src.utils import EpochSaver, MySentences
 from typing import List, Dict
 import multiprocessing
 import random
 import gensim
-from preprocess_blogCatalog import *
+#from src.preprocess improt <F3>
+from src.reprocess_blogCatalog import *
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
