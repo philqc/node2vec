@@ -1,13 +1,13 @@
 import numpy as np
 import pickle
 import argparse
-from src.utils import EpochSaver, MySentences, alias_setup, alias_draw
+from utils import EpochSaver, MySentences, alias_setup, alias_draw
 from typing import List, Dict
 import multiprocessing
 import random
 import gensim
 #from src.preprocess improt <F3>
-from src.reprocess_blogCatalog import *
+from  preprocess_blogCatalog import *
 import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
@@ -32,21 +32,17 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
         start_node = random.sample(possible_starts, 1)[0]
 
         walk = [previous_node, start_node]
-        for i in range(length):
+        for i in range(length-1):
             # probability distribution
             p_dist = matrix_prob[walk[-2]][walk[-1]]
             # draw a sample
-            # Get a random probability vector.
-            probs = list(p_dist.values())
-            # Construct the table.
-            J, q = alias_setup(probs)
-            sample = alias_draw(J, q)
+            sample = np.random.choice(list(p_dist.keys()), p=list(p_dist.values()))
             walk.append(sample)
     except KeyError as err:
         raise KeyError(err)
 
     # remove previous node because it is not sampled according to prob.distribution
-    return walk[1:]
+    return walk
 
 
 def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
