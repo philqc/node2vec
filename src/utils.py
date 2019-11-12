@@ -3,6 +3,7 @@ from typing import Dict
 from gensim.test.utils import get_tmpfile
 from gensim.models.callbacks import CallbackAny2Vec
 import os
+import numpy as np
 
 RELATIONS = os.path.join("Relation", "Relation.csv")
 BLOGCATALOG_EDGE = os.path.join("BlogCatalog-dataset/data", "edges.csv")
@@ -10,6 +11,60 @@ BLOGCATALOG_NODE = os.path.join("BlogCatalog-dataset/data", "nodes.csv")
 BLOGCATALOG_FEATURES = os.path.join("./", "features_node2vec.pkl")
 BLOGCATALOG_LABELS = os.path.join("BlogCatalog-dataset/data", "group-edges.csv")
 
+def alias_setup(probs):
+    '''
+    probs： 某个概率分布
+    返回: Alias数组与Prob数组
+    '''
+    K       = len(probs)
+    q       = np.zeros(K) # 对应Prob数组
+    J       = np.zeros(K, dtype=np.int) # 对应Alias数组
+    # Sort the data into the outcomes with probabilities
+    # that are larger and smaller than 1/K.
+    smaller = [] # 存储比1小的列
+    larger  = [] # 存储比1大的列
+    for kk, prob in enumerate(probs):
+        q[kk] = K*prob # 概率
+        if q[kk] < 1.0:
+            smaller.append(kk)
+        else:
+            larger.append(kk)
+ 
+    # Loop though and create little binary mixtures that
+    # appropriately allocate the larger outcomes over the
+    # overall uniform mixture.
+    
+    # 通过拼凑，将各个类别都凑为1
+    while len(smaller) > 0 and len(larger) > 0:
+        small = smaller.pop()
+        large = larger.pop()
+ 
+        J[small] = large # 填充Alias数组
+        q[large] = q[large] - (1.0 - q[small]) # 将大的分到小的上
+ 
+        if q[large] < 1.0:
+            smaller.append(large)
+        else:
+            larger.append(large)
+ 
+    return J, q
+ 
+def alias_draw(J, q):
+    '''
+    输入: Prob数组和Alias数组
+    输出: 一次采样结果
+    '''
+    K  = len(J)
+    # Draw from the overall uniform mixture.
+    kk = int(np.floor(np.random.rand()*K)) # 随机取一列
+ 
+    # Draw from the binary mixture, either keeping the
+    # small one, or choosing the associated larger one.
+    if np.random.rand() < q[kk]: # 比较
+        return kk
+    else:
+        return J[kk]
+ 
 
 def project_root() -> Path:
     """Returns project root folder."""
