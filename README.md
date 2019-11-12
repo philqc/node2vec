@@ -7,14 +7,19 @@ This is a Python implementation of the paper [node2vec: Scalable Feature Learnin
 
 ## Usage
 
-## Example Tasks (Reproduce 1 multilabel classification and 1 link prediction)
+## Example Tasks 
 
-### Multi-Label Classfication with BlogCatalog dataset
+### (1) Multi-Label Classfication with BlogCatalog dataset
 
-### Link Prediction with ....dataset
+### (2) Link Prediction with arxiv dataset
 
 ## Authors
 * **PHILLIPPE BEARDSELL** - *Professional Machine Learning Master Student at [Mila](https://mila.quebec/)* 
 * **HSU, CHIH-CHAO** - *Professional Machine Learning Master Student at [Mila](https://mila.quebec/)* 
 
 ## Acknowlegements
+
+## To Do
+Try multiprocessing for neigbor prob calculation
+Implement Alias Sampling
+Evaluation code (predic_prob
