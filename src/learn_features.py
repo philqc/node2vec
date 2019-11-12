@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 import argparse
-from src.utils import EpochSaver, MySentences
+from src.utils import EpochSaver, MySentences, alias_setup, alias_draw
 from typing import List, Dict
 import multiprocessing
 import random
@@ -36,8 +36,11 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
             # probability distribution
             p_dist = matrix_prob[walk[-2]][walk[-1]]
             # draw a sample
-            sample = np.random.choice(list(p_dist.keys()), p=list(p_dist.values()))
-
+            # Get a random probability vector.
+            probs = list(p_dist.values())
+            # Construct the table.
+            J, q = alias_setup(probs)
+            sample = alias_draw(J, q)
             walk.append(sample)
     except KeyError as err:
         raise KeyError(err)
