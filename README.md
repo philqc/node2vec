@@ -20,6 +20,6 @@ This is a Python implementation of the paper [node2vec: Scalable Feature Learnin
 ## Acknowlegements
 
 ## To Do
-Try multiprocessing for neigbor prob calculation
-Implement Alias Sampling
-Evaluation code (predic_prob
+### Try multiprocessing for neigbor prob calculation
+### Implement Alias Sampling
+### Evaluation code (predic_prob)
