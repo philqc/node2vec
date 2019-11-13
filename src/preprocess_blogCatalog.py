@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from utils import project_root, prob_distribution_from_dict, BLOGCATALOG_EDGE
+from utils import project_root, prob_distribution_from_dict, BLOGCATALOG_EDGE, alias_setup
 import os
 from typing import Dict, List, Tuple
 import pdb
@@ -49,10 +49,11 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
         if i % 100 == 0 and i > 0:
             logging.info("Precomputed %s nodes" % i)
         dct[previous] = {}
+        possible_starts = set(possible_starts)
         for start in possible_starts:
             # Probability to get back to itself
             dct[previous][start] = {previous: 1 / p}
-            for neighbor in df_neighbors[start]:
+            for neighbor in set(df_neighbors[start]):
                 # Second neighbors
                 if neighbor != previous:
                     if neighbor in possible_starts:
@@ -64,7 +65,6 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
                         dct[previous][start][neighbor] = 1 / q
             # Transform to probability distribution
             dct[previous][start] = prob_distribution_from_dict(dct[previous][start])
-
     return dct
 
 
@@ -83,8 +83,7 @@ def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, drop_page_ids
 
     
     # Modify df now removing columns with page ids to drop
-    logging.info("df_users.shape = %s; df_pages.shape = %s" % (df_users.shape, df_pages.shape))
-
+    logging.info("df_total.shape = %s" % (df_total.shape))
     logging.info("Getting All Nodes' neighbors and its neighbors' neighbors")
     user_neighbors = get_neighbors_neighbors(df_total,  df_total, p, q)
 

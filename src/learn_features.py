@@ -9,6 +9,7 @@ import gensim
 #from src.preprocess improt <F3>
 from  preprocess_blogCatalog import *
 import logging
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
 
@@ -19,7 +20,6 @@ TRAIN = "train"
 RESUME = "resume"
 ALL = "all"
 PREPROCESS = "preprocess"
-
 
 def random_walk(matrix_prob: Dict, previous_node: str, length: int):
     """ TODO: Find out how to start the random walk since we
@@ -32,18 +32,18 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
         start_node = random.sample(possible_starts, 1)[0]
 
         walk = [previous_node, start_node]
-        for i in range(length-1):
+        for i in range(length):
             # probability distribution
             p_dist = matrix_prob[walk[-2]][walk[-1]]
             # draw a sample
             sample = np.random.choice(list(p_dist.keys()), p=list(p_dist.values()))
             walk.append(sample)
+
     except KeyError as err:
         raise KeyError(err)
 
     # remove previous node because it is not sampled according to prob.distribution
-    return walk
-
+    return walk[-1]
 
 def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
                  walks_per_node: int = 10, walk_length: int = 80):
