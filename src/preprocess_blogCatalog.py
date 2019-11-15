@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from utils import project_root, prob_distribution_from_dict, BLOGCATALOG_EDGE, alias_setup
+from utils import project_root, prob_distribution_from_dict, BLOGCATALOG_EDGE
 import os
 from typing import Dict, List, Tuple
 import pdb

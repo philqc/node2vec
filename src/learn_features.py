@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 import argparse
-from utils import EpochSaver, MySentences, alias_setup, alias_draw
+from utils import EpochSaver, MySentences
 from typing import List, Dict
 import multiprocessing
 import random
@@ -43,7 +43,7 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
         raise KeyError(err)
 
     # remove previous node because it is not sampled according to prob.distribution
-    return walk[-1]
+    return walk
 
 def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
                  walks_per_node: int = 10, walk_length: int = 80):
