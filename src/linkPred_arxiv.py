@@ -75,10 +75,11 @@ def main():
     
     #convert reduced graph to csv
     logging.info("Create New EdgeList for Arxiv_Reduced.")
-    with open(file_reduced_edgelist, 'w') as f:
-        file_writer = csv.writer(f)
-        for i in range(len(re_edges[0])):
-            file_writer.writerow([x[i] for x in re_edges])
+    start_nodes = [x[0] for x in re_edges]
+    end_nodes = [x[1] for x in re_edges]
+    
+    df = pd.DataFrame({'start':start_nodes, 'end':end_nodes})
+    df.to_csv(file_reduced_edgelist, header=False, index=False)
 
     #create positive and negative samples
     
