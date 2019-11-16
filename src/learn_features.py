@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 import argparse
-from utils import EpochSaver, MySentences
+from utils import EpochSaver, MySentences, ARXIV_REDUCED_EDGE
 from typing import List, Dict
 import multiprocessing
 import random
@@ -13,8 +13,8 @@ import logging
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                     datefmt="%Y-%m-%d %H:%M:%S")
 
-FILE_EMBEDDINGS = "features_node2vec.pkl"
-FILE_SAMPLED_WALKS = "sampled_walks.txt"
+FILE_EMBEDDINGS = "features_node2vec_arxiv.pkl"
+FILE_SAMPLED_WALKS = "sampled_walks_arxiv.txt"
 ID = "id"
 TRAIN = "train"
 RESUME = "resume"
@@ -194,7 +194,7 @@ def main():
     # Save sample sentences (random walks) to a .txt file to be memory efficient
     path_sentences = os.path.join(args.save, FILE_SAMPLED_WALKS)
     # Get to Relation.csv
-    args.data = os.path.join(args.data, BLOGCATALOG_EDGE)
+    args.data = os.path.join(args.data, ARXIV_REDUCED_EDGE)
     args.save = os.path.join(args.save, FILE_EMBEDDINGS)
 
     if args.mode in [PREPROCESS, ALL]:

@@ -24,24 +24,31 @@ def create_graph(edge_csv):
     return g
 
 def remove_edges(g, min_edges, portion=0.5):
+    print(nx.is_connected(g))
+    #print(min_edges)
     all_edges = list(g.edges())
+    G = nx.Graph()
+    G.add_edges_from(min_edges)
+    print(nx.info(G))
     num_all_edges = len(all_edges)
     num_rm_edges = int((g.number_of_edges()-len(min_edges))*portion)
     np.random.shuffle(all_edges)
     logging.info("Total Edges, Number of Remove Edges: %s , %s " %(num_all_edges, num_rm_edges))
     count = 0
     removed_edges = []
+    remain_edges = all_edges
     for edge_uv in all_edges:
-        if count  == num_rm_edges:
-            return all_edges, removed_edges
-        edge_vu = (edge_uv[1], edge_uv[0])
+        #print(edge_uv)
+        edge_vu = (edge_uv[1], edge_uv[0], {'weight':1})
+        edge_uv = (edge_uv[0], edge_uv[1], {'weight':1})
         if (edge_uv not in min_edges) and (edge_vu not in min_edges):
             removed_edges.append((edge_uv[0], edge_uv[1], 1))
-            all_edges.remove(edge_uv)
+            remain_edges.remove((edge_uv[0], edge_uv[1]))
             count+=1
             if count%1000 == 0:
                 print('%s edges have been removed.'%(count))
-        
+            if count  == num_rm_edges:
+                return remain_edges, removed_edges
 
 def min_spanning_edges(g):
     return list(nx.minimum_spanning_edges(g))
@@ -77,6 +84,8 @@ def main():
     logging.info("Create New EdgeList for Arxiv_Reduced.")
     start_nodes = [x[0] for x in re_edges]
     end_nodes = [x[1] for x in re_edges]
+
+    print(len(set(start_nodes)|set(end_nodes)))
     
     df = pd.DataFrame({'start':start_nodes, 'end':end_nodes})
     df.to_csv(file_reduced_edgelist, header=False, index=False)
