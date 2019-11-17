@@ -14,6 +14,7 @@ BLOGCATALOG_LABELS = os.path.join("BlogCatalog-dataset/data", "group-edges.csv")
 
 ARXIV_EDGE = os.path.join("Arxiv_ASTRO-PH", "CA-AstroPh.csv")
 ARXIV_REDUCED_EDGE = os.path.join("Arxiv_ASTRO-PH", "CA-AstroPh_reduced.csv")
+ARXIV_FEATURES = os.path.join("./", "features_node2vec_arxiv.pkl")
 
 def project_root() -> Path:
     """Returns project root folder."""

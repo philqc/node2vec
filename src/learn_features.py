@@ -184,7 +184,7 @@ def main():
         "--q",
         help="Parameter q of node2vec model",
         type=float,
-        default=0.5,
+        default=1.0,
     )
 
     args = parser.parse_args()
