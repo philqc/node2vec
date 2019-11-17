@@ -10,8 +10,9 @@ from utils import project_root, ARXIV_EDGE, ARXIV_REDUCED_EDGE, ARXIV_FEATURES
 import logging
 import csv
 import learn_features
+from sklearn import metrics, model_selection, pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
                                     datefmt="%Y-%m-%d %H:%M:%S")
@@ -80,10 +81,9 @@ def create_features(samples, dic_emb, binary_operator='l2'):
     l = np.zeros(len(samples))
     idx = 0
     for s in samples:
-        print(s[0], s[1], s[2])
         f1 = dic_emb[s[0]]
         f2 = dic_emb[s[1]]
-        f_l2 = (f1-f2)**2
+        f_l2 = f1 * f2
         f[idx] = f_l2
         l[idx] = s[2]
         idx+=1
@@ -92,15 +92,18 @@ def create_features(samples, dic_emb, binary_operator='l2'):
 
 def evaluation(X, y):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5)
-    clf = LogisticRegression(solver="lbfgs")
+    scaler = StandardScaler()
+    lin_clf = LogisticRegression(C=1)
+    clf = pipeline.make_pipeline(scaler, lin_clf)
     clf.fit(X_train, y_train)
-    y_score = clf.predict_proba(X_test)
+    auc = metrics.scorer.roc_auc_scorer(clf, X_test, y_test)
 
+    """
     if clf.classes_[0] == 1: # only needs probabilities of positive class
         auc = roc_auc_score(y_test, y_score[:, 0])
     else:
         auc = roc_auc_score(y_test, y_score[:, 1])
-    
+    """
     print("Link Prediction AUC SCORE:%s"%(auc))
     
 
