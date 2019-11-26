@@ -196,7 +196,7 @@ def main():
     if args.save is None:
         args.save = args.data
 
-    str_save = f"_p_{args.p}_q_{args.q}_dim_{args.dim_features}_minLike_{args.min_like}_window_{args.context_size}"
+    str_save = f"_p_{args.p}_q_{args.q}_dim_{args.dim_features}_minLike_{args.min_like}"
     file_sampled_walks = "sampled_walks" + str_save + ".txt"
     # Save sample sentences (random walks) to a .txt file to be memory efficient
     path_sentences = os.path.join(args.save, file_sampled_walks)
@@ -204,7 +204,7 @@ def main():
     args.data = os.path.join(args.data, RELATIONS)
 
     # add number of epochs for name file of embeddings
-    str_save += "_epochs_{}".format(args.epochs)
+    str_save += f"_window_{args.context_size}_epochs_{args.epochs}"
 
     file_embeddings = "features_node2vec" + str_save + ".pkl"
     args.save = os.path.join(args.save, file_embeddings)
