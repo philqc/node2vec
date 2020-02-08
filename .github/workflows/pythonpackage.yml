@@ -25,5 +25,5 @@ jobs:
       run: |
         ./scripts/lint.sh
     - name: Tests
-        run: |
+      run: |
         ./scripts/test.sh
