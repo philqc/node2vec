@@ -1,15 +1,7 @@
 import pandas as pd
 from src.utils import prob_distribution_from_dict
 from typing import Dict, List, Tuple
-from src.config import logging
-
-LIKE_ID = "like_id"
-USER_ID = "userid"
-
-PARAMETERS = {
-    "q": 0.5,
-    "p": 2
-}
+from src.config import logging, LIKE_ID, USER_ID
 
 
 def load_csv(path_csv: str) -> pd.DataFrame:
@@ -57,7 +49,7 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
 
 def get_transition_probabilites(
         df: pd.DataFrame, drop_page_ids: bool, min_like: int,
-        p: float = PARAMETERS["p"], q: float = PARAMETERS["q"]
+        p: float = 1., q: float = 1.
 ) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
     if drop_page_ids:
         if min_like <= 1:
@@ -90,7 +82,6 @@ def get_transition_probabilites(
     user_neighbors = get_neighbors_neighbors(df_users, df_pages, p, q)
     logging.info("Getting Pages' neighbors and its neighbors' neighbors")
     pages_neighbors = get_neighbors_neighbors(df_pages, df_users, p, q)
-
     # This is all neighbors now
     user_neighbors.update(pages_neighbors)
 

@@ -1,19 +1,26 @@
 import unittest
-from src.preprocess import (
-    get_transition_probabilites, load_csv, PARAMETERS, prob_distribution_from_dict, list_all_nodes
-)
-from src.learn_features import random_walk
-from src.utils import project_root
 import os
+import time
 
-TEST_CSV = os.path.join(project_root(), "tests", "data", "Relation", "Relation.csv")
+from src.preprocess import (
+    get_transition_probabilites, load_csv, prob_distribution_from_dict, list_all_nodes
+)
+from src.learn_features import random_walk, preparing_samples
+from src.utils import project_root
 
 
 class UtilsTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.df = load_csv(TEST_CSV)
+        self.rel_folder = os.path.join(project_root(), "tests", "data", "Relation")
+        self.path_small_csv = os.path.join(self.rel_folder, "Relation.csv")
+        self.path_big_csv = os.path.join(self.rel_folder, "Fake_Big_Relation.csv")
+        self.df = load_csv(self.path_small_csv)
+        self.PARAMETERS = {
+            "q": 0.5,
+            "p": 2
+        }
         self.matrix_probs, self.all_nodes = get_transition_probabilites(
-            self.df, min_like=2, drop_page_ids=False
+            self.df, min_like=2, drop_page_ids=False, p=self.PARAMETERS["p"], q=self.PARAMETERS["q"]
         )
 
     def test_neighbors(self):
@@ -54,9 +61,9 @@ class UtilsTest(unittest.TestCase):
 
         mc_estimate = prob_distribution_from_dict(mc_estimate)
         real_prob_distribution = {
-            "page4": 1 / PARAMETERS["p"],
-            "page1": 1 / PARAMETERS["q"],
-            "page2": 1 / PARAMETERS["q"]
+            "page4": 1 / self.PARAMETERS["p"],
+            "page1": 1 / self.PARAMETERS["q"],
+            "page2": 1 / self.PARAMETERS["q"]
         }
         real_prob_distribution = prob_distribution_from_dict(real_prob_distribution)
         for key in mc_estimate.keys():
@@ -64,3 +71,15 @@ class UtilsTest(unittest.TestCase):
 
     def test_node_list(self):
         self.assertEqual(len(list_all_nodes(self.df)), 10)
+
+    def test_benchmark_performance(self):
+        start = time.time()
+        path_save_sentences = os.path.join(self.rel_folder, "test.txt")
+        preparing_samples(
+            self.path_big_csv, 1, 0.5, 2, 80, 1, 10, path_save_sentences
+        )
+        # Delete file when done
+        if os.path.exists(path_save_sentences):
+            os.remove(path_save_sentences)
+
+        print(f"{(time.time() - start):.2f} seconds elapsed")

@@ -6,6 +6,8 @@ import random
 import gensim
 import os
 from typing import Dict, List
+import tqdm
+
 from src.config import logging
 from src.utils import MySentences
 from src.preprocess import (
@@ -30,12 +32,11 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
         start_node = random.sample(possible_starts, 1)[0]
 
         walk = [previous_node, start_node]
-        for i in range(length):
+        for _ in range(length):
             # probability distribution
             p_dist = matrix_prob[walk[-2]][walk[-1]]
             # draw a sample
             sample = np.random.choice(list(p_dist.keys()), p=list(p_dist.values()))
-
             walk.append(sample)
     except KeyError as err:
         raise KeyError(err)
@@ -47,10 +48,9 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
 def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
                  walks_per_node: int = 10, walk_length: int = 80):
     with open(path_save, 'w', encoding='utf-8') as f_txt:
-        for i in range(walks_per_node):
+        for _ in tqdm.tqdm(range(walks_per_node), desc="Random walk"):
             for node in all_nodes:
                 f_txt.write(" ".join(random_walk(matrix_prob, node, walk_length)) + '\n')
-            logging.info("One walk per node completed (%s) total" % (i + 1))
 
 
 def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: str,
@@ -109,18 +109,22 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str
         pickle.dump(embeddings, f_out)
 
 
-def preparing_samples(args, path_save_sentences: str):
+def preparing_samples(
+        path_data: str, min_like: int, p: float, q: float, walk_length: int,
+        walks_per_node: int, context_size: int, path_save_sentences: str
+):
     logging.info("Loading data...")
-    df = load_csv(args.data)
+    df = load_csv(path_data)
     logging.info("Precomputing transition probabilities...")
-    matrix_prob, list_nodes = get_transition_probabilites(df, drop_page_ids=True,
-                                                          min_like=args.min_like, p=args.p, q=args.q)
+    matrix_prob, list_nodes = get_transition_probabilites(
+        df, drop_page_ids=True, min_like=min_like, p=p, q=q
+    )
 
-    if args.context_size >= args.walk_length:
+    if context_size >= walk_length:
         raise ValueError("Context size can't be greater or equal to walk length !")
 
     logging.info("Sampling walks to create our dataset")
-    sample_walks(path_save_sentences, matrix_prob, list_nodes, args.walks_per_node, args.walk_length)
+    sample_walks(path_save_sentences, matrix_prob, list_nodes, walks_per_node, walk_length)
     return list_pages_nodes(df)
 
 
@@ -213,7 +217,10 @@ def main():
     args.save = os.path.join(args.save, file_embeddings)
 
     if args.mode in [PREPROCESS, ALL]:
-        page_nodes = preparing_samples(args, path_sentences)
+        page_nodes = preparing_samples(
+            args.data, args.min_like, args.p, args.q, args.walk_length,
+            args.walks_per_node, args.context_size, path_sentences
+        )
     else:
         df = load_csv(args.data)
         page_nodes = list_pages_nodes(df)
