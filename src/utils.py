@@ -48,7 +48,6 @@ class MySentences(object):
 
 class EpochSaver(CallbackAny2Vec):
     """Callback to save model after each epoch."""
-
     def __init__(self, path_prefix):
         self.path_prefix = path_prefix
         self.epoch = 0

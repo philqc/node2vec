@@ -1,15 +1,8 @@
 import pandas as pd
-from src.utils import project_root, prob_distribution_from_dict, RELATIONS
-import os
+from src.utils import prob_distribution_from_dict
 from typing import Dict, List, Tuple
-import pdb
-import json
-import logging
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
-                    datefmt="%Y-%m-%d %H:%M:%S")
+from src.config import logging
 
-TEST_CSV = os.path.join(project_root(), "tests", "data", RELATIONS)
-PATH_PROBS = os.path.join(project_root(), "tests", "prob_relations.json")
 LIKE_ID = "like_id"
 USER_ID = "userid"
 
@@ -63,10 +56,10 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
     return dct
 
 
-def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, drop_page_ids: bool, min_like: int,
-                                p: float = PARAMETERS["p"], q: float = PARAMETERS["q"]) \
-        -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
-
+def get_transition_probabilites(
+        df: pd.DataFrame, drop_page_ids: bool, min_like: int,
+        p: float = PARAMETERS["p"], q: float = PARAMETERS["q"]
+) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
     if drop_page_ids:
         if min_like <= 1:
             logging.warning("drop_page_ids is set to true but min_like (%s) <= 1 --> no pages will be removed"
@@ -91,7 +84,6 @@ def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, drop_page_ids
     df_users = df.groupby(USER_ID)[LIKE_ID].apply(list)
     # Recompute df_pages as well
     df_pages = df.groupby(LIKE_ID)[USER_ID].apply(list)
-
     # Modify df now removing columns with page ids to drop
     logging.info("df_users.shape = %s; df_pages.shape = %s" % (df_users.shape, df_pages.shape))
 
@@ -103,18 +95,4 @@ def get_transition_probabilites(df: pd.DataFrame, save_dict: bool, drop_page_ids
     # This is all neighbors now
     user_neighbors.update(pages_neighbors)
 
-    if save_dict:
-        with open(PATH_PROBS, 'w', encoding='utf-8') as f_out:
-            json.dump(user_neighbors, f_out)
-
     return user_neighbors, all_nodes
-
-
-def main():
-    df = load_csv(TEST_CSV)
-    get_transition_probabilites(df, True, True)
-    #pdb.set_trace()
-
-
-if __name__ == "__main__":
-    main()

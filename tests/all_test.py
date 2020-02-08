@@ -1,5 +1,7 @@
 import unittest
-from src.preprocess import *
+from src.preprocess import (
+    get_transition_probabilites, load_csv, PARAMETERS, prob_distribution_from_dict, list_all_nodes
+)
 from src.learn_features import random_walk
 from src.utils import project_root
 import os
@@ -10,8 +12,9 @@ TEST_CSV = os.path.join(project_root(), "tests", "data", "Relation", "Relation.c
 class UtilsTest(unittest.TestCase):
     def setUp(self) -> None:
         self.df = load_csv(TEST_CSV)
-        self.matrix_probs, self.all_nodes = get_transition_probabilites(self.df, False, min_like=2,
-                                                                        drop_page_ids=False)
+        self.matrix_probs, self.all_nodes = get_transition_probabilites(
+            self.df, min_like=2, drop_page_ids=False
+        )
 
     def test_neighbors(self):
 

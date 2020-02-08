@@ -1,16 +1,16 @@
 import numpy as np
 import pickle
 import argparse
-from src.utils import EpochSaver, MySentences
-from typing import List, Dict
 import multiprocessing
 import random
 import gensim
-from src.preprocess import *
-import logging
-
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO,
-                    datefmt="%Y-%m-%d %H:%M:%S")
+import os
+from typing import Dict, List
+from src.config import logging
+from src.utils import MySentences
+from src.preprocess import (
+    list_pages_nodes, get_transition_probabilites, load_csv
+)
 
 ID = "id"
 TRAIN = "train"
@@ -96,7 +96,7 @@ def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: s
     write_embeddings_to_file(model, page_nodes, path_save)
 
 
-def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str], path_save: str):
+def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str], path_save: str) -> None:
     logging.info('Writting embeddings to file %s' % path_save)
     embeddings = {}
     for v in list(model.wv.vocab):
@@ -113,7 +113,7 @@ def preparing_samples(args, path_save_sentences: str):
     logging.info("Loading data...")
     df = load_csv(args.data)
     logging.info("Precomputing transition probabilities...")
-    matrix_prob, list_nodes = get_transition_probabilites(df, save_dict=False, drop_page_ids=True,
+    matrix_prob, list_nodes = get_transition_probabilites(df, drop_page_ids=True,
                                                           min_like=args.min_like, p=args.p, q=args.q)
 
     if args.context_size >= args.walk_length:
@@ -124,13 +124,12 @@ def preparing_samples(args, path_save_sentences: str):
     return list_pages_nodes(df)
 
 
-def main():
+def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data",
         type=str,
-        help="Path to the folder containing the data",
-        default=os.path.join(project_root(), "tests", "data"),
+        help="Path to the csv file containing the data",
     )
     parser.add_argument(
         "--save",
@@ -196,12 +195,16 @@ def main():
     if args.save is None:
         args.save = args.data
 
+    return args
+
+
+def main():
+    args = parse()
+
     str_save = f"_p_{args.p}_q_{args.q}_minLike_{args.min_like}"
     file_sampled_walks = "sampled_walks" + str_save + ".txt"
     # Save sample sentences (random walks) to a .txt file to be memory efficient
     path_sentences = os.path.join(args.save, file_sampled_walks)
-    # Get to Relation.csv
-    args.data = os.path.join(args.data, RELATIONS)
 
     # add number of epochs for name file of embeddings
     str_save += f"_dim_{args.dim_features}_window_{args.context_size}_epochs_{args.epochs}"
