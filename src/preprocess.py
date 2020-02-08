@@ -31,7 +31,7 @@ def list_pages_nodes(df: pd.DataFrame) -> List[str]:
 
 
 def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float) -> Dict:
-    dct = {}
+    dct = {}  # type: ignore
     logging.info("get_neighbors_neighbors: %s ids to compute" % len(df_start))
     for i, (previous, possible_starts) in enumerate(df_start.items()):
         if i % 100 == 0 and i > 0:
@@ -45,7 +45,6 @@ def get_neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, 
                 if neighbor != previous:
                     if neighbor in possible_starts:
                         # Previous node and start share the same neighbor !
-                        # TODO: I think this will never be the case with Relations.csv?
                         dct[previous][start][neighbor] = 1
                     else:
                         # there is a distance of 2 between previous and neighbor
