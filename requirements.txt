@@ -1,0 +1,7 @@
+numpy==1.18.1
+pandas==1.0.1
+gensim==3.8.1
+tqdm==4.42.1
+mypy
+flake8
+pytest

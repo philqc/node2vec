@@ -2,9 +2,11 @@ from pathlib import Path
 from typing import Dict
 from gensim.test.utils import get_tmpfile
 from gensim.models.callbacks import CallbackAny2Vec
+import pandas as pd
+import numpy as np
 import os
 
-RELATIONS = os.path.join("Relation", "Relation.csv")
+from src.config import LIKE_ID, USER_ID
 
 
 def project_root() -> Path:
@@ -57,3 +59,20 @@ class EpochSaver(CallbackAny2Vec):
         output_path = get_tmpfile('{}_epoch{}.model'.format(self.path_prefix, self.epoch))
         model.save(output_path)
         self.epoch += 1
+
+
+def create_fake_test_csv():
+    """
+    For testing purpose/benchmarking speed
+    Create dummy csv file with arbitrary number of users/pages
+    to benchmark performance
+    """
+    user_ids = np.random.randint(0, 10 ** 4, size=10 ** 4)
+    page_ids = np.random.randint(0, 10 ** 5, size=10 ** 4)
+    page_ids = np.array(["pageid_" + str(_id) for _id in page_ids])
+    data = np.stack((user_ids, page_ids), axis=1)
+    pd.DataFrame(data, columns=[USER_ID, LIKE_ID]).to_csv('../tests/data/Relation/Fake_Big_Relation.csv')
+
+
+if __name__ == "__main__":
+    create_fake_test_csv()
