@@ -10,9 +10,7 @@ import tqdm
 
 from src.config import logging
 from src.utils import MySentences
-from src.preprocess import (
-    list_pages_nodes, get_transition_probabilites, load_csv
-)
+from src.data.base import DataLoader
 
 ID = "id"
 TRAIN = "train"
@@ -53,13 +51,13 @@ def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
                 f_txt.write(" ".join(random_walk(matrix_prob, node, walk_length)) + '\n')
 
 
-def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: str,
+def optimize(path_sentences: str, like_nodes: List[str], mode: str, path_save: str,
              epochs: int = 10, context_size: int = 10, dim_features: int = 128, path_model: str = None):
     """
     :param path_sentences: Input of .txt file to sentences (one sentence per line)
     :param epochs: number of epochs to run model
     :param path_save: where to save the embeddings
-    :param page_nodes: List of all pages ids
+    :param like_nodes: List of all like/item ids
     :param context_size: Also called window size
     :param dim_features:
     :param mode: {'train' or 'resume'} resume to resume training
@@ -93,15 +91,15 @@ def optimize(path_sentences: str, page_nodes: List[str], mode: str, path_save: s
     else:
         raise ValueError('Specify valid value for mode (%s)' % mode)
 
-    write_embeddings_to_file(model, page_nodes, path_save)
+    write_embeddings_to_file(model, like_nodes, path_save)
 
 
-def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str], path_save: str) -> None:
+def write_embeddings_to_file(model: gensim.models.Word2Vec, like_nodes: List[str], path_save: str) -> None:
     logging.info('Writting embeddings to file %s' % path_save)
     embeddings = {}
     for v in list(model.wv.vocab):
-        # we only keep pages' embeddings
-        if v in page_nodes:
+        # we only keep likes' nodes embeddings
+        if v in like_nodes:
             vec = model.wv.__getitem__(v)
             embeddings[str(v)] = vec
 
@@ -110,22 +108,19 @@ def write_embeddings_to_file(model: gensim.models.Word2Vec, page_nodes: List[str
 
 
 def preparing_samples(
-        path_data: str, min_like: int, p: float, q: float, walk_length: int,
+        dataloader: DataLoader, p: float, q: float, walk_length: int,
         walks_per_node: int, context_size: int, path_save_sentences: str
 ):
     logging.info("Loading data...")
-    df = load_csv(path_data)
     logging.info("Precomputing transition probabilities...")
-    matrix_prob, list_nodes = get_transition_probabilites(
-        df, drop_page_ids=True, min_like=min_like, p=p, q=q
-    )
+    matrix_prob, list_nodes = dataloader.get_transition_probabilites(p, q)
 
     if context_size >= walk_length:
         raise ValueError("Context size can't be greater or equal to walk length !")
 
     logging.info("Sampling walks to create our dataset")
     sample_walks(path_save_sentences, matrix_prob, list_nodes, walks_per_node, walk_length)
-    return list_pages_nodes(df)
+    return dataloader.list_like_nodes()
 
 
 def parse():
@@ -190,7 +185,7 @@ def parse():
     )
     parser.add_argument(
         "--min_like",
-        help="A page needs min_like to be in the dataset",
+        help="An item needs min_like to be in the dataset",
         type=int,
         default=2,
     )
@@ -216,18 +211,19 @@ def main():
     file_embeddings = "features_node2vec" + str_save + ".pkl"
     args.save = os.path.join(args.save, file_embeddings)
 
+    dataloader = DataLoader(args.data, min_like=args.min_like)
+
     if args.mode in [PREPROCESS, ALL]:
-        page_nodes = preparing_samples(
-            args.data, args.min_like, args.p, args.q, args.walk_length,
+        like_nodes = preparing_samples(
+            dataloader, args.p, args.q, args.walk_length,
             args.walks_per_node, args.context_size, path_sentences
         )
     else:
-        df = load_csv(args.data)
-        page_nodes = list_pages_nodes(df)
+        like_nodes = dataloader.list_like_nodes()
 
     if args.mode in [ALL, TRAIN, RESUME]:
         logging.info("Starting training of skip-gram model")
-        optimize(path_sentences, page_nodes, args.mode, args.save, args.epochs, args.context_size, args.dim_features)
+        optimize(path_sentences, like_nodes, args.mode, args.save, args.epochs, args.context_size, args.dim_features)
 
 
 if __name__ == "__main__":
