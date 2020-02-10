@@ -10,6 +10,7 @@ __pycache__/
 /tests/data/**/sampled_walks*
 /tests/**/prob_relations.json
 /.idea/
+/.vscode/
 
 # Distribution / packaging
 .Python
