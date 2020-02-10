@@ -6,10 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
-/tests/data/features_node2vec.csv
-/tests/data/sampled_walks.txt
-/tests/prob_relations.json
-/tests/data/prob_relations.json
+/tests/data/**/features_node2vec*
+/tests/data/**/sampled_walks*
+/tests/**/prob_relations.json
 /.idea/
 
 # Distribution / packaging
@@ -108,3 +107,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+
+./tests/data/feature_node2vec.pkl

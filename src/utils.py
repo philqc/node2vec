@@ -1,17 +1,11 @@
-from pathlib import Path
 from typing import Dict
 from gensim.test.utils import get_tmpfile
 from gensim.models.callbacks import CallbackAny2Vec
 import pandas as pd
-import numpy as np
 import os
+import numpy as np
 
-from src.config import LIKE_ID, USER_ID
-
-
-def project_root() -> Path:
-    """Returns project root folder."""
-    return Path(__file__).parent.parent
+from src.config import RelationsData
 
 
 def prob_distribution_from_dict(dct: Dict):
@@ -71,7 +65,9 @@ def create_fake_test_csv():
     page_ids = np.random.randint(0, 10 ** 5, size=10 ** 4)
     page_ids = np.array(["pageid_" + str(_id) for _id in page_ids])
     data = np.stack((user_ids, page_ids), axis=1)
-    pd.DataFrame(data, columns=[USER_ID, LIKE_ID]).to_csv('../tests/data/Relation/Fake_Big_Relation.csv')
+    pd.DataFrame(
+        data, columns=[RelationsData.USER_ID, RelationsData.LIKE_ID]
+    ).to_csv('../tests/data/Relation/Fake_Big_Relation.csv')
 
 
 if __name__ == "__main__":

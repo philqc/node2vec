@@ -2,25 +2,22 @@ import unittest
 import os
 import time
 
-from src.preprocess import (
-    get_transition_probabilites, load_csv, prob_distribution_from_dict, list_all_nodes
-)
 from src.learn_features import random_walk, preparing_samples
-from src.utils import project_root
+from src.config import RelationsData
+from src.utils import prob_distribution_from_dict
+from src.data.base import DataLoader
 
 
 class UtilsTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.rel_folder = os.path.join(project_root(), "tests", "data", "Relation")
-        self.path_small_csv = os.path.join(self.rel_folder, "Relation.csv")
-        self.path_big_csv = os.path.join(self.rel_folder, "Fake_Big_Relation.csv")
-        self.df = load_csv(self.path_small_csv)
+        self.path_big_csv = os.path.join(RelationsData._FOLDER, "Fake_Big_Relation.csv")
+        self.dataloder = DataLoader(RelationsData.CSV_FILE, min_like=1)
         self.PARAMETERS = {
             "q": 0.5,
             "p": 2
         }
-        self.matrix_probs, self.all_nodes = get_transition_probabilites(
-            self.df, min_like=2, drop_page_ids=False, p=self.PARAMETERS["p"], q=self.PARAMETERS["q"]
+        self.matrix_probs, self.all_nodes = self.dataloder.get_transition_probabilites(
+            self.PARAMETERS["p"], q=self.PARAMETERS["q"]
         )
 
     def test_neighbors(self):
@@ -51,10 +48,11 @@ class UtilsTest(unittest.TestCase):
             "page2": 0
         }
 
-        length = 1
+        length = 10
         walk = random_walk(self.matrix_probs, "page4", length)
-        self.assertEqual(len(walk), length + 1)
+        self.assertEqual(len(walk), length)
 
+        length = 3
         for i in range(10000):
             walk = random_walk(self.matrix_probs, "page4", length)
             mc_estimate[walk[-1]] += 1
@@ -70,13 +68,14 @@ class UtilsTest(unittest.TestCase):
             self.assertAlmostEqual(mc_estimate[key], real_prob_distribution[key], places=1)
 
     def test_node_list(self):
-        self.assertEqual(len(list_all_nodes(self.df)), 10)
+        self.assertEqual(len(self.dataloder.list_all_nodes()), 10)
 
     def test_benchmark_performance(self):
         start = time.time()
-        path_save_sentences = os.path.join(self.rel_folder, "test.txt")
+        path_save_sentences = os.path.join(RelationsData._FOLDER, "test.txt")
+        big_dataloader = DataLoader(self.path_big_csv, min_like=1)
         preparing_samples(
-            self.path_big_csv, 1, 0.5, 2, 80, 1, 10, path_save_sentences
+            big_dataloader, 0.5, 2, 80, 1, 10, path_save_sentences
         )
         # Delete file when done
         if os.path.exists(path_save_sentences):
