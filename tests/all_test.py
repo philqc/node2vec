@@ -3,16 +3,15 @@ import os
 import time
 
 from src.learn_features import random_walk, preparing_samples
-from src.utils import project_root, prob_distribution_from_dict
+from src.config import RelationsData
+from src.utils import prob_distribution_from_dict
 from src.data.base import DataLoader
 
 
 class UtilsTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.rel_folder = os.path.join(project_root(), "tests", "data", "Relation")
-        self.path_small_csv = os.path.join(self.rel_folder, "Relation.csv")
-        self.path_big_csv = os.path.join(self.rel_folder, "Fake_Big_Relation.csv")
-        self.dataloder = DataLoader(self.path_small_csv, min_like=1)
+        self.path_big_csv = os.path.join(RelationsData._FOLDER, "Fake_Big_Relation.csv")
+        self.dataloder = DataLoader(RelationsData.CSV_FILE, min_like=1)
         self.PARAMETERS = {
             "q": 0.5,
             "p": 2
@@ -49,10 +48,11 @@ class UtilsTest(unittest.TestCase):
             "page2": 0
         }
 
-        length = 1
+        length = 10
         walk = random_walk(self.matrix_probs, "page4", length)
-        self.assertEqual(len(walk), length + 1)
+        self.assertEqual(len(walk), length)
 
+        length = 3
         for i in range(10000):
             walk = random_walk(self.matrix_probs, "page4", length)
             mc_estimate[walk[-1]] += 1
@@ -72,7 +72,7 @@ class UtilsTest(unittest.TestCase):
 
     def test_benchmark_performance(self):
         start = time.time()
-        path_save_sentences = os.path.join(self.rel_folder, "test.txt")
+        path_save_sentences = os.path.join(RelationsData._FOLDER, "test.txt")
         big_dataloader = DataLoader(self.path_big_csv, min_like=1)
         preparing_samples(
             big_dataloader, 0.5, 2, 80, 1, 10, path_save_sentences

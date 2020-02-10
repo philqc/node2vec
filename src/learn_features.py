@@ -8,9 +8,10 @@ import os
 from typing import Dict, List
 import tqdm
 
-from src.config import logging
+from src.config import logging, RelationsData
 from src.utils import MySentences
 from src.data.base import DataLoader
+
 
 ID = "id"
 TRAIN = "train"
@@ -20,27 +21,23 @@ PREPROCESS = "preprocess"
 
 
 def random_walk(matrix_prob: Dict, previous_node: str, length: int):
-    """ TODO: Find out how to start the random walk since we
-    need information about the previous node to know the probability distribution
-    """
     try:
-        # Actually using the start node as the previous node and randomly sampling a a start node
-        # TODO: Find out how they did in paper
+        # Actually using the start node as the previous node and randomly sampling a start node
         possible_starts = matrix_prob[previous_node].keys()
         start_node = random.sample(possible_starts, 1)[0]
 
         walk = [previous_node, start_node]
-        for _ in range(length):
+        for _ in range(length - 2):
             # probability distribution
             p_dist = matrix_prob[walk[-2]][walk[-1]]
             # draw a sample
             sample = np.random.choice(list(p_dist.keys()), p=list(p_dist.values()))
             walk.append(sample)
+
     except KeyError as err:
         raise KeyError(err)
 
-    # remove previous node because it is not sampled according to prob.distribution
-    return walk[1:]
+    return walk
 
 
 def sample_walks(path_save: str, matrix_prob: Dict, all_nodes: List[str],
@@ -64,7 +61,6 @@ def optimize(path_sentences: str, like_nodes: List[str], mode: str, path_save: s
     :param path_model: path model if we are resuming training
     :return:
     """
-
     cores = multiprocessing.cpu_count()
 
     # save model each epoch
@@ -111,7 +107,6 @@ def preparing_samples(
         dataloader: DataLoader, p: float, q: float, walk_length: int,
         walks_per_node: int, context_size: int, path_save_sentences: str
 ):
-    logging.info("Loading data...")
     logging.info("Precomputing transition probabilities...")
     matrix_prob, list_nodes = dataloader.get_transition_probabilites(p, q)
 
@@ -128,7 +123,13 @@ def parse():
     parser.add_argument(
         "--data",
         type=str,
-        help="Path to the csv file containing the data",
+        help="Path to the folder containing the data",
+    )
+    parser.add_argument(
+        "--type",
+        type=str,
+        help='Either "Relation" for bipartite graph, "Arxiv" or "BlogCatalog"',
+        default="Relation"
     )
     parser.add_argument(
         "--save",
@@ -163,13 +164,13 @@ def parse():
         "--mode",
         help="{preprocess, train, resume, all}",
         type=str,
-        default='all',
+        default=ALL,
     )
     parser.add_argument(
         "--epochs",
         help="Number of epochs to run the model",
         type=int,
-        default=10,
+        default=1,
     )
     parser.add_argument(
         "--p",
@@ -181,7 +182,7 @@ def parse():
         "--q",
         help="Parameter q of node2vec model",
         type=float,
-        default=0.5,
+        default=1.0,
     )
     parser.add_argument(
         "--min_like",
@@ -203,6 +204,7 @@ def main():
     str_save = f"_p_{args.p}_q_{args.q}_minLike_{args.min_like}"
     file_sampled_walks = "sampled_walks" + str_save + ".txt"
     # Save sample sentences (random walks) to a .txt file to be memory efficient
+    print(f"os.path.exists(args.save) {os.path.exists(args.save)} -- {args.save}")
     path_sentences = os.path.join(args.save, file_sampled_walks)
 
     # add number of epochs for name file of embeddings
@@ -211,7 +213,10 @@ def main():
     file_embeddings = "features_node2vec" + str_save + ".pkl"
     args.save = os.path.join(args.save, file_embeddings)
 
-    dataloader = DataLoader(args.data, min_like=args.min_like)
+    if args.type == "Relation":
+        dataloader = DataLoader(RelationsData.CSV_FILE, min_like=args.min_like)
+    else:
+        raise NotImplementedError("Other datatypes are not yet impleented")
 
     if args.mode in [PREPROCESS, ALL]:
         like_nodes = preparing_samples(

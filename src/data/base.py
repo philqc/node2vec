@@ -1,6 +1,8 @@
 import pandas as pd
 from typing import Dict, List, Tuple, Optional
 import os
+import tqdm
+
 from src.config import logging
 from src.utils import prob_distribution_from_dict
 
@@ -49,15 +51,12 @@ class DataLoader:
     def list_all_nodes(self) -> List[str]:
         users = self.df[self.USER_ID].unique()
         likes = self.df[self.LIKE_ID].unique()
-        return list(users) + list(likes)
+        return list(set(users).union(set(likes)))
 
     @staticmethod
     def _neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float) -> Dict:
         dct = {}  # type: ignore
-        logging.info("get_neighbors_neighbors: %s ids to compute" % len(df_start))
-        for i, (previous, possible_starts) in enumerate(df_start.items()):
-            if i % 100 == 0 and i > 0:
-                logging.info("Precomputed %s nodes" % i)
+        for previous, possible_starts in tqdm.tqdm(df_start.items(), desc="Precomputing neighbors'neighbors"):
             dct[previous] = {}
             possible_starts = set(possible_starts)
             for start in possible_starts:
@@ -96,17 +95,16 @@ class DataLoader:
         self.df = self.df[~self.df[column].isin(ids_to_drop)]
         logging.info(f"Dropped a total of {len_bef - self.df.shape[0]} rows")
 
-    def get_transition_probabilites(
-            self, p: float = 1., q: float = 1.
-    ) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
-        if self.min_like > 1:
-            self._filter_df_min_connections(is_users=False)
-
         if len(self.df) == 0:
             raise RuntimeError(
                 f"Dataframe is now empty! Either min_like={self.min_like} is too big or input data is invalid"
             )
 
+    def get_transition_probabilites(
+            self, p: float = 1., q: float = 1.
+    ) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
+        if self.min_like > 1:
+            self._filter_df_min_connections(is_users=False)
         # Calculate this here because we modify dataframe
         all_nodes = self.list_all_nodes()
 
@@ -115,7 +113,7 @@ class DataLoader:
 
         df_total = (df_users.append(df_likes)).groupby(level=0).apply(sum)
 
-        logging.info("df_total.shape = %s" % df_total.shape)
+        logging.info(f"df_total.shape = {df_total.shape}")
         logging.info("Getting All Nodes' neighbors and its neighbors' neighbors")
         all_neighbors = self._neighbors_neighbors(df_total, df_total, p, q)
 
