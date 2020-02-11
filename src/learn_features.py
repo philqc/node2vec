@@ -1,4 +1,3 @@
-import numpy as np
 import pickle
 import argparse
 import multiprocessing
@@ -11,6 +10,7 @@ import tqdm
 from src.config import logging, RelationsData
 from src.utils import MySentences
 from src.data.base import DataLoader
+from src.data.weighted_dict import WeightedDict
 
 
 ID = "id"
@@ -20,7 +20,7 @@ ALL = "all"
 PREPROCESS = "preprocess"
 
 
-def random_walk(matrix_prob: Dict, previous_node: str, length: int):
+def random_walk(matrix_prob: Dict[str, Dict[str, WeightedDict]], previous_node: str, length: int):
     try:
         # Actually using the start node as the previous node and randomly sampling a start node
         possible_starts = matrix_prob[previous_node].keys()
@@ -28,11 +28,8 @@ def random_walk(matrix_prob: Dict, previous_node: str, length: int):
 
         walk = [previous_node, start_node]
         for _ in range(length - 2):
-            # probability distribution
-            p_dist = matrix_prob[walk[-2]][walk[-1]]
             # draw a sample
-            sample = np.random.choice(list(p_dist.keys()), p=list(p_dist.values()))
-            walk.append(sample)
+            walk.append(matrix_prob[walk[-2]][walk[-1]].sample())
 
     except KeyError as err:
         raise KeyError(err)

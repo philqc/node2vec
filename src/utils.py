@@ -62,7 +62,7 @@ def create_fake_test_csv():
     to benchmark performance
     """
     user_ids = np.random.randint(0, 10 ** 4, size=10 ** 4)
-    page_ids = np.random.randint(0, 10 ** 5, size=10 ** 4)
+    page_ids = np.random.randint(0, 10 ** 3, size=10 ** 4)
     page_ids = np.array(["pageid_" + str(_id) for _id in page_ids])
     data = np.stack((user_ids, page_ids), axis=1)
     pd.DataFrame(

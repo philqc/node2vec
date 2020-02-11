@@ -3,7 +3,7 @@ import os
 import time
 
 from src.learn_features import random_walk, preparing_samples
-from src.config import RelationsData
+from src.config import RelationsData, logging
 from src.utils import prob_distribution_from_dict
 from src.data.base import DataLoader
 
@@ -11,31 +11,29 @@ from src.data.base import DataLoader
 class UtilsTest(unittest.TestCase):
     def setUp(self) -> None:
         self.path_big_csv = os.path.join(RelationsData._FOLDER, "Fake_Big_Relation.csv")
-        self.dataloder = DataLoader(RelationsData.CSV_FILE, min_like=1)
+        self.dataloader = DataLoader(RelationsData.CSV_FILE, min_like=1)
         self.PARAMETERS = {
             "q": 0.5,
             "p": 2
         }
-        self.matrix_probs, self.all_nodes = self.dataloder.get_transition_probabilites(
+        self.dict_probs, self.all_nodes = self.dataloader.get_transition_probabilites(
             self.PARAMETERS["p"], q=self.PARAMETERS["q"]
         )
 
     def test_neighbors(self):
 
-        for previous, possible_starts in self.matrix_probs.items():
+        for previous, possible_starts in self.dict_probs.items():
             for start, neighbors in possible_starts.items():
-                # Make sure we have a probability distribution accross neighbors
-                self.assertAlmostEqual(sum(neighbors.values()), 1)
                 # make sure we can always go back to previous node
                 self.assertTrue(previous in neighbors.keys())
 
         # Use our prior knowledge abour Relation.csv to make sure this make sense
-        neighbors = self.matrix_probs["user1"]["page1"]
+        neighbors = self.dict_probs["user1"]["page1"]
         self.assertTrue("user2" in neighbors.keys())
         self.assertTrue("user6" in neighbors.keys())
         self.assertTrue(len(neighbors) == 3)
 
-        neighbors = self.matrix_probs["user2"]["page4"]
+        neighbors = self.dict_probs["user2"]["page4"]
         self.assertTrue(len(neighbors) == 1)
 
     def test_random_walk(self):
@@ -49,12 +47,12 @@ class UtilsTest(unittest.TestCase):
         }
 
         length = 10
-        walk = random_walk(self.matrix_probs, "page4", length)
+        walk = random_walk(self.dict_probs, "page4", length)
         self.assertEqual(len(walk), length)
 
         length = 3
         for i in range(10000):
-            walk = random_walk(self.matrix_probs, "page4", length)
+            walk = random_walk(self.dict_probs, "page4", length)
             mc_estimate[walk[-1]] += 1
 
         mc_estimate = prob_distribution_from_dict(mc_estimate)
@@ -68,7 +66,7 @@ class UtilsTest(unittest.TestCase):
             self.assertAlmostEqual(mc_estimate[key], real_prob_distribution[key], places=1)
 
     def test_node_list(self):
-        self.assertEqual(len(self.dataloder.list_all_nodes()), 10)
+        self.assertEqual(len(self.dataloader.list_all_nodes()), 10)
 
     def test_benchmark_performance(self):
         start = time.time()
@@ -81,4 +79,4 @@ class UtilsTest(unittest.TestCase):
         if os.path.exists(path_save_sentences):
             os.remove(path_save_sentences)
 
-        print(f"{(time.time() - start):.2f} seconds elapsed")
+        logging.info(f"{(time.time() - start):.2f} seconds elapsed")
