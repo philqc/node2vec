@@ -70,7 +70,6 @@ def k_fold_average(features, labels, clf, k=10):
     test_result = []
     kf = KFold(n_splits=k, shuffle=True)
     for train_index, test_index in kf.split(features):
-        # print("TRAIN:", train_index, "TEST:", test_index)
         x_train, x_test = features[train_index], features[test_index]
         y_train, y_test = labels[train_index], labels[test_index]
         clf = clf.fit(x_train, y_train)
@@ -93,7 +92,7 @@ def main():
     features = create_features(BlogCatalogData.FEATURES_FILE)
     labels = create_labels(BlogCatalogData.LABELS_FILE)
     clf = OneVsRestClassifier(LogisticRegression(multi_class='ovr', solver='lbfgs'))
-    k = 2
+    k = 10
     kfold_avg = k_fold_average(features, labels, clf, k=k)
     logging.info("%s Fold CV Macro F1 Score: %s " % (k, kfold_avg))
 

@@ -30,4 +30,4 @@ class BlogCatalogData:
     NODE_CSV = os.path.join(FOLDER, "data", "nodes.csv")
     LABELS_FILE = os.path.join(FOLDER, "data", "group-edges.csv")
     # Node2vec features file
-    FEATURES_FILE = os.path.join(FOLDER, "features_node2vec.pkl")
+    FEATURES_FILE = os.path.join(FOLDER, "features_node2vec_blogcatalog.pkl")

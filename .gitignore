@@ -9,6 +9,7 @@ __pycache__/
 /tests/data/**/features_node2vec*
 /tests/data/**/sampled_walks*
 /tests/**/prob_relations.json
+!/tests/data/BlogCatalog-dataset/features_node2vec_blogcatalog.pkl
 /.idea/
 /.vscode/
 

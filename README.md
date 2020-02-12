@@ -28,9 +28,3 @@ python -m src.learn_features --type blogcatalog --p 0.25 --q 0. --min_like 0
 * **PHILLIPPE BEARDSELL** - *Professional Machine Learning Master Student at [Mila](https://mila.quebec/)* 
 * **HSU, CHIH-CHAO** - *Professional Machine Learning Master Student at [Mila](https://mila.quebec/)* 
 
-## Acknowlegements
-
-## To Do
-### Try multiprocessing for neigbor prob calculation
-### Implement Alias Sampling
-### Evaluation code (predic_prob)
