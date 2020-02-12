@@ -1,43 +1,33 @@
 import pandas as pd
-from typing import Dict, List, Tuple, Optional
-import os
+from typing import Dict, List, Tuple
+from abc import ABC
 import tqdm
 
+from src.data.weighted_dict import WeightedDict
 from src.config import logging
-from src.utils import prob_distribution_from_dict
+
+# Dictionnary of transition probabilities
+Dict_Prob = Dict[str, Dict[str, WeightedDict]]
 
 
-class DataLoader:
+class DataLoader(ABC):
 
     def __init__(
             self,
-            path_csv: str,
-            col_user_id: Optional[str] = None,
-            col_like_id: Optional[str] = None,
+            df: pd.DataFrame,
+            col1: str,
+            col2: str,
             min_like: int = 1
     ):
-        if not os.path.exists(path_csv):
-            raise ValueError(f"path_csv provided doesn't exist = {path_csv}")
+        self.USER_ID = col1
+        self.LIKE_ID = col2
+        self.min_like = min_like
 
-        self.df = pd.read_csv(path_csv)
-
-        if col_user_id is None:
-            self.USER_ID = self.df.columns.tolist()[1]
-            logging.info(f"col_user_id is not provided so we use 2nd column of .csv file = {self.USER_ID } as users")
-        else:
-            self.USER_ID = col_user_id
-        if col_like_id is None:
-            self.LIKE_ID = self.df.columns.tolist()[2]
-            logging.info(f"col_like_id is not provided so we use 3rd column of .csv file = {self.LIKE_ID} as likes")
-        else:
-            self.LIKE_ID = col_like_id
-        # make sure every id is a string for skipgram model
+        self.df = df
         self.df[self.USER_ID] = self.df[self.USER_ID].astype(str)
         self.df[self.LIKE_ID] = self.df[self.LIKE_ID].astype(str)
         if len(self.df) == 0:
             raise ValueError(f"Dataframe provided is empty")
-
-        self.min_like = min_like
 
     def get_df_likes(self):
         return self.df.groupby(self.LIKE_ID)[self.USER_ID].apply(list)
@@ -54,14 +44,18 @@ class DataLoader:
         return list(set(users).union(set(likes)))
 
     @staticmethod
-    def _neighbors_neighbors(df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float) -> Dict:
-        dct = {}  # type: ignore
-        for previous, possible_starts in tqdm.tqdm(df_start.items(), desc="Precomputing neighbors'neighbors"):
+    def _neighbors_neighbors(
+            df_start: pd.DataFrame, df_neighbors: pd.DataFrame, p: float, q: float
+    ) -> Dict_Prob:
+        dct: Dict_Prob = {}
+        df_start = df_start.apply(lambda x: set(x))
+        for previous, possible_starts in tqdm.tqdm(df_start.items(), desc="Precomputing neighbors'neighbors",
+                                                   total=len(df_start)):
             dct[previous] = {}
-            possible_starts = set(possible_starts)
             for start in possible_starts:
                 # Probability to get back to itself
-                dct[previous][start] = {previous: 1 / p}
+                dct[previous][start] = WeightedDict()
+                dct[previous][start][previous] = 1 / p
                 for neighbor in df_neighbors[start]:
                     # Second neighbors
                     if neighbor != previous:
@@ -71,9 +65,6 @@ class DataLoader:
                         else:
                             # there is a distance of 2 between previous and neighbor
                             dct[previous][start][neighbor] = 1 / q
-                # Transform to probability distribution
-                dct[previous][start] = prob_distribution_from_dict(dct[previous][start])
-
         return dct
 
     def _filter_df_min_connections(self, is_users: bool):
@@ -102,7 +93,7 @@ class DataLoader:
 
     def get_transition_probabilites(
             self, p: float = 1., q: float = 1.
-    ) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
+    ) -> Tuple[Dict_Prob, List[str]]:
         if self.min_like > 1:
             self._filter_df_min_connections(is_users=False)
         # Calculate this here because we modify dataframe
