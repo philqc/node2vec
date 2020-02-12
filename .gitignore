@@ -6,7 +6,6 @@ __pycache__/
 # C extensions
 *.so
 
-/tests/data/**/features_node2vec*
 /tests/data/**/sampled_walks*
 /tests/**/prob_relations.json
 /.idea/
