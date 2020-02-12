@@ -16,8 +16,8 @@ def project_root() -> Path:
 
 class RelationsData:
     """Bipartite graph from DataScience Projet"""
-    _FOLDER = os.path.join(project_root(), "tests", "data", "Relation")
-    CSV_FILE = os.path.join(_FOLDER, "Relation.csv")
+    FOLDER = os.path.join(project_root(), "tests", "data", "Relation")
+    CSV_FILE = os.path.join(FOLDER, "Relation.csv")
     # Columns
     LIKE_ID = "like_id"
     USER_ID = "userid"
@@ -25,16 +25,9 @@ class RelationsData:
 
 class BlogCatalogData:
     """ BlogCatalog Dataset """
-    _FOLDER = os.path.join(project_root(), "tests", "data", "BlogCatalog-dataset")
-    EDGE_CSV = os.path.join(_FOLDER, "data", "edges.csv")
-    NODE_CSV = os.path.join(_FOLDER, "data", "nodes.csv")
-    LABELS_FILE = os.path.join(_FOLDER, "data", "group-edges.csv")
+    FOLDER = os.path.join(project_root(), "tests", "data", "BlogCatalog-dataset")
+    EDGE_CSV = os.path.join(FOLDER, "data", "edges.csv")
+    NODE_CSV = os.path.join(FOLDER, "data", "nodes.csv")
+    LABELS_FILE = os.path.join(FOLDER, "data", "group-edges.csv")
     # Node2vec features file
-    FEATURES_FILE = os.path.join(_FOLDER, "features_node2vec.pkl")
-
-
-class ArxivData:
-    _FOLDER = os.path.join(project_root(), "tests", "data", "Arxiv_ASTRO-PH")
-    EDGE_CSV = os.path.join(_FOLDER, "CA-AstroPh.csv")
-    REDUCED_EDGE_CSV = os.path.join(_FOLDER, "CA-AstroPh_reduced.csv")
-    FEATURES_FILE = os.path.join(_FOLDER, "features_node2vec_arxiv.pkl")
+    FEATURES_FILE = os.path.join(FOLDER, "features_node2vec.pkl")

@@ -10,7 +10,7 @@ from src.data.base import DataLoader
 
 class UtilsTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.path_big_csv = os.path.join(RelationsData._FOLDER, "Fake_Big_Relation.csv")
+        self.path_big_csv = os.path.join(RelationsData.FOLDER, "Fake_Big_Relation.csv")
         self.dataloader = DataLoader(RelationsData.CSV_FILE, min_like=1)
         self.PARAMETERS = {
             "q": 0.5,
@@ -70,7 +70,7 @@ class UtilsTest(unittest.TestCase):
 
     def test_benchmark_performance(self):
         start = time.time()
-        path_save_sentences = os.path.join(RelationsData._FOLDER, "test.txt")
+        path_save_sentences = os.path.join(RelationsData.FOLDER, "test.txt")
         big_dataloader = DataLoader(self.path_big_csv, min_like=1)
         preparing_samples(
             big_dataloader, 0.5, 2, 80, 1, 10, path_save_sentences

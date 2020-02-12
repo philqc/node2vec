@@ -7,9 +7,11 @@ import os
 from typing import Dict, List
 import tqdm
 
-from src.config import logging, RelationsData
+from src.config import logging, RelationsData, BlogCatalogData
 from src.utils import MySentences
 from src.data.base import DataLoader
+from src.data.relations import RelationsDataLoader
+from src.data.blogcatalog import BlogCatalogDataLoader
 from src.data.weighted_dict import WeightedDict
 
 
@@ -118,14 +120,9 @@ def preparing_samples(
 def parse():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data",
-        type=str,
-        help="Path to the folder containing the data",
-    )
-    parser.add_argument(
         "--type",
         type=str,
-        help='Either "Relation" for bipartite graph, "Arxiv" or "BlogCatalog"',
+        help='Either "Relation" or "BlogCatalog" dataset',
         default="Relation"
     )
     parser.add_argument(
@@ -189,8 +186,6 @@ def parse():
     )
 
     args = parser.parse_args()
-    if args.save is None:
-        args.save = args.data
 
     return args
 
@@ -198,22 +193,29 @@ def parse():
 def main():
     args = parse()
 
+    if args.type.lower() == "relation" or args.type.lower() == "relations":
+        dataloader = RelationsDataLoader(RelationsData.CSV_FILE, min_like=args.min_like)
+        folder = RelationsData.FOLDER
+    elif args.type.lower() == "blogcatalog":
+        dataloader = BlogCatalogDataLoader(BlogCatalogData.EDGE_CSV, min_like=args.min_like)
+        folder = BlogCatalogData.FOLDER
+    else:
+        raise NotImplementedError("Other datatypes are not yet impleented")
+
+    if args.save is None:
+        args.save = folder
+
     str_save = f"_p_{args.p}_q_{args.q}_minLike_{args.min_like}"
     file_sampled_walks = "sampled_walks" + str_save + ".txt"
     # Save sample sentences (random walks) to a .txt file to be memory efficient
-    print(f"os.path.exists(args.save) {os.path.exists(args.save)} -- {args.save}")
     path_sentences = os.path.join(args.save, file_sampled_walks)
 
     # add number of epochs for name file of embeddings
     str_save += f"_dim_{args.dim_features}_window_{args.context_size}_epochs_{args.epochs}"
 
     file_embeddings = "features_node2vec" + str_save + ".pkl"
-    args.save = os.path.join(args.save, file_embeddings)
 
-    if args.type == "Relation":
-        dataloader = DataLoader(RelationsData.CSV_FILE, min_like=args.min_like)
-    else:
-        raise NotImplementedError("Other datatypes are not yet impleented")
+    args.save = os.path.join(args.save, file_embeddings)
 
     if args.mode in [PREPROCESS, ALL]:
         like_nodes = preparing_samples(
