@@ -17,9 +17,3 @@ This is a Python implementation of the paper [node2vec: Scalable Feature Learnin
 * **PHILLIPPE BEARDSELL** - *Professional Machine Learning Master Student at [Mila](https://mila.quebec/)* 
 * **HSU, CHIH-CHAO** - *Professional Machine Learning Master Student at [Mila](https://mila.quebec/)* 
 
-## Acknowlegements
-
-## To Do
-### Try multiprocessing for neigbor prob calculation
-### Implement Alias Sampling
-### Evaluation code (predic_prob)
