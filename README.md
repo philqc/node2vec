@@ -6,7 +6,7 @@ This is a Python implementation of the paper [node2vec: Scalable Feature Learnin
 ### (1) Feature extraction with Relations dataset
 In a Data Science class (IFT-6758 at UdeM/Mila), we were given the task to predict age, gender 
 and personality traits of users from a social network website. One of the data sources was a Relation.csv
-file, which was essentially an edge list between users and liked pages. We implemented Node2Vec
+file, which was essentially an edge list between users and liked pages. We implemented node2vec
 to do feature extraction on the relational data, which was subsequently concatenated with other data
 sources (pictures, text) in a multimodal approach. Since the data is private, we incorporated two fake 
 Relations.csv in ``` .tests/Relation/``` that show how the data was constructed. To run the model,
@@ -14,7 +14,7 @@ simply write
 ```bash
 python -m src.learn_features --type relation
 ```
-Other hyparameters can be specified (min_like, p, q values of node2vec biased random walk) 
+Other hyperparameters can be specified (min_like, p, q values of node2vec biased random walk) 
 as command-line arguments.
 ### (2) Multi-Label Classfication with BlogCatalog dataset
 We also reproduced the results from node2vec paper on the BlogCatalog dataset to test our implementation.
