@@ -27,7 +27,7 @@ python -m src.learn_features --type blogcatalog --p 0.25 --q 0.25 --min_like 0
 After node2vec training, you can test the learned features of BlogCatalog Dataset by running the command:
 
 ```bash
-python -m src.multilabel_blogCatalog --path 'path of features' --label ''path of labels' --k 'integer k for k-fold validation' 
+python -m src.multilabel_blogCatalog --path 'path of features' --label 'path of labels' --k 'integer k for k-fold validation' 
 ```
 
 ## Authors
