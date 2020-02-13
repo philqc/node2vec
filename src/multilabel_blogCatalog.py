@@ -91,18 +91,17 @@ def k_fold_average(features, labels, clf, k=10):
 
 def main():
     parser = argparse.ArgumentParser(description='node2vec_blogcatalog')
-    parser.add_argument('--path', type=str, default='./test/data/BlogCatalog-dataset/features_node2vec_blogcatalog.pkl',
-                        metavar='N',
+    parser.add_argument('--path', type=str, default=BlogCatalogData.FEATURES_FILE,
                         help='path of trained BlogCatalog dataset node2vec feature')
-    parser.add_argument('--k', type=int, default=10, metavar='N',
-                        help='number of fold validation')
+    parser.add_argument('--label', type=str, default=BlogCatalogData.LABELS_FILE, help='path of label file')
+    parser.add_argument('--k', type=int, default=10, help='number of fold validation')
+    args = parser.parse_known_args()[0]
 
-    features = create_features(BlogCatalogData.FEATURES_FILE)
-    labels = create_labels(BlogCatalogData.LABELS_FILE)
+    features = create_features(args.path)
+    labels = create_labels(args.label)
     clf = OneVsRestClassifier(LogisticRegression(multi_class='ovr', solver='lbfgs'))
-    k = 10
-    kfold_avg = k_fold_average(features, labels, clf, k=k)
-    logging.info("%s Fold CV Macro F1 Score: %s " % (k, kfold_avg))
+    kfold_avg = k_fold_average(features, labels, clf, k=args.k)
+    logging.info("%s Fold CV Macro F1 Score: %s " % (args.k, kfold_avg))
 
 
 if __name__ == "__main__":
