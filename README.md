@@ -19,10 +19,16 @@ as command-line arguments.
 ### (2) Multi-Label Classfication with BlogCatalog dataset
 We also reproduced the results from node2vec paper on the BlogCatalog dataset to test our implementation.
 To run the feature extraction run the command:
+
 ```bash
-python -m src.learn_features --type blogcatalog --p 0.25 --q 0. --min_like 0
+python -m src.learn_features --type blogcatalog --p 0.25 --q 0.25 --min_like 0
 ```
 
+After node2vec training, you can test the learned features of BlogCatalog Dataset by running the command:
+
+```bash
+python -m src.multilabel_blogCatalog --path 'path of learned features' --k 'number of k for k-fold validation' 
+```
 
 ## Authors
 * **PHILLIPPE BEARDSELL** - *Professional Machine Learning Master Student at [Mila](https://mila.quebec/)* 

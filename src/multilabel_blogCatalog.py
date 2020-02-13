@@ -1,5 +1,6 @@
 #! usr/bin/python
 import pickle
+import argparse
 import numpy as np
 import pandas as pd
 from src.config import logging, BlogCatalogData
@@ -89,6 +90,13 @@ def k_fold_average(features, labels, clf, k=10):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='node2vec_blogcatalog')
+    parser.add_argument('--path', type=str, default='./test/data/BlogCatalog-dataset/features_node2vec_blogcatalog.pkl',
+                        metavar='N',
+                        help='path of trained BlogCatalog dataset node2vec feature')
+    parser.add_argument('--k', type=int, default=10, metavar='N',
+                        help='number of fold validation')
+
     features = create_features(BlogCatalogData.FEATURES_FILE)
     labels = create_labels(BlogCatalogData.LABELS_FILE)
     clf = OneVsRestClassifier(LogisticRegression(multi_class='ovr', solver='lbfgs'))
